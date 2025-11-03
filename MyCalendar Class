@@ -1,0 +1,26 @@
+import java.time.LocalDate;
+import java.util.*;
+public class MyCalendar {
+    private LocalDate currentDate;
+    public MyCalendar() 
+    {
+        currentDate = LocalDate.now();
+    }
+
+    public void displayCurrentDate() 
+    {
+        System.out.println("Current date: " + currentDate);
+    }
+    public static void main (String[] args)
+    {
+        MyCalendar calendar = new MyCalendar();
+        calendar.displayCurrentDate();
+    }
+
+        
+        
+
+
+}
+    
+

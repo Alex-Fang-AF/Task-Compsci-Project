@@ -1,13 +1,18 @@
 import java.time.LocalDate;
 import java.util.*;
 public class MyCalendar {
+
+    #Instance Variables
     private LocalDate currentDate;
     private ArrayList<DemoTask> tasksList = new ArrayList<>();
+
+    #Constructor
     public MyCalendar() 
     {
         currentDate = LocalDate.now();
     }
 
+    #Methods
     public void displayCurrentDate() 
     {
         System.out.println("Current date: " + currentDate);
@@ -26,6 +31,8 @@ public class MyCalendar {
             }
         }
     }
+
+    #Main Method
     public static void main (String[] args)
     {
         MyCalendar calendar = new MyCalendar();

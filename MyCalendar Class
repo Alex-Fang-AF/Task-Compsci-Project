@@ -2,6 +2,7 @@ import java.time.LocalDate;
 import java.util.*;
 public class MyCalendar {
     private LocalDate currentDate;
+    private ArrayList<DemoTask> tasksList = new ArrayList<>();
     public MyCalendar() 
     {
         currentDate = LocalDate.now();
@@ -11,16 +12,46 @@ public class MyCalendar {
     {
         System.out.println("Current date: " + currentDate);
     }
+    public void addTask(DemoTask task) 
+    {
+        tasksList.add(task);
+        System.out.println("Task added: " + task.getTaskName() + " due on " + task.getDueDate());
+    }
+    public void showTasksOn(LocalDate date)
+    {
+        System.out.println("Tasks on " + date + ":");
+        for (DemoTask task : tasksList) {
+            if (task.getDueDate().equals(date)) {
+                System.out.println("- " + task.getTaskName());
+            }
+        }
+    }
     public static void main (String[] args)
     {
         MyCalendar calendar = new MyCalendar();
         calendar.displayCurrentDate();
+        DemoTask task = new DemoTask("Goon", LocalDate.of(2025, 12, 31));
+        calendar.addTask(task);
+    }
+}
+//IMPORTANT:
+//The class below is being listed as an example of a Task class. Changes will be made to the Calendar class accordingly after the actual Task class is being implemented.
+class DemoTask
+{
+    private String taskName;
+    private LocalDate dueDate;
+
+    public DemoTask(String taskName, LocalDate dueDate) {
+        this.taskName = taskName;
+        this.dueDate = dueDate;
+    }
+    public String getTaskName() {
+        return taskName;
     }
 
-        
-        
-
-
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
 }
-    
+
 

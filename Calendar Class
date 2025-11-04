@@ -2,7 +2,6 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.Scanner;
 public class MyCalendar {
-
     //Instance Variables
     private LocalDate currentDate;
     private ArrayList<DemoTask> tasksList = new ArrayList<>();
@@ -70,16 +69,22 @@ class DemoTask
         LocalDate newDate = scan.next;
         setdueDate(newDate);
     }
-    public void editTask()
+    public void editTask(String newName, LocaldDate newDate)
     {
-        
+        setTaskName(newName);
+        setDueDate(newDate);
+    }
+    public void printTask()
+    {
+        System.out.println(getTaskName() + getDueDate());
+    }
     public String getTaskName() {
         return taskName;
     }
     public void setTaskName(String n){
         this.taskName = n;
     }
-    public void setdueDate(String d){
+    public void setDueDate(LocalDate d){
         this.dueDate = d;
     }
     public LocalDate getDueDate() {

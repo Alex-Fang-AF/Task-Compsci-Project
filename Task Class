@@ -1,11 +1,11 @@
+import java.util.Scanner;
+import java.time.LocalDate;
+
 Public class Task{
     private String taskName;
-//IMPORTANT:
-//The class below is being listed as an example of a Task class. Changes will be made to the Calendar class accordingly after the actual Task class is being implemented.
-class DemoTask
-{
     private String taskName;
     private LocalDate dueDate;
+
     //Import Scanner
     Scanner scan = new Scanner(System.in);
     public DemoTask(String taskName, LocalDate dueDate) {

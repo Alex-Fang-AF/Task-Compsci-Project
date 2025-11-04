@@ -3,7 +3,6 @@ import java.time.LocalDate;
 
 Public class Task{
     private String taskName;
-    private String taskName;
     private LocalDate dueDate;
 
     //Import Scanner

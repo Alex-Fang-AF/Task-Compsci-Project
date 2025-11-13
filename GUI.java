@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
-public class TaskGui extends JFrame {
+public class TaskGUI extends JFrame {
     private MyCalendar calendar;
     private JPanel mainPanel;
     private JPanel inputPanel;
@@ -22,7 +22,7 @@ public class TaskGui extends JFrame {
     private JButton removeTaskButton;
 
     // Constructor
-    public TaskGui() {
+    public TaskGUI() {
         calendar = new MyCalendar();
         initializeFrame();
         createPanels();
@@ -201,7 +201,7 @@ public class TaskGui extends JFrame {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new TaskGui();
+                new TaskGUI();
             }
         });
     }

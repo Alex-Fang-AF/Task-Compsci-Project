@@ -1,0 +1,46 @@
+import java.time.LocalDate;
+import java.util.*;
+import java.util.Scanner;
+public class MyCalendar {
+
+    //Instance Variables
+    private LocalDate currentDate;
+    private ArrayList<Task> tasksList = new ArrayList<>();
+
+    //Constructor
+    public MyCalendar() 
+    {
+        currentDate = LocalDate.now();
+    }
+
+    //Methods
+    public void displayCurrentDate() 
+    {
+        System.out.println("Current date: " + currentDate);
+    }
+    
+    public void addTask(Task task) 
+    {
+        tasksList.add(task);
+        System.out.println("Task added: " + task.getTaskName() + " due on " + task.getDueDate());
+    }
+
+    public void removeTask(Task task) 
+    {
+        tasksList.remove(task);
+        System.out.println("Task removed: " + task.getTaskName());
+    }
+
+    public void showTasksOn(LocalDate date)
+    {
+        System.out.println("Task(s) on " + date + ":");
+        for (Task task : tasksList) {
+            if (task.getDueDate().equals(date)) {
+                System.out.println("- " + task.getTaskName());
+            }
+            else{
+                System.out.println("No task(s) due on this date.");
+            }
+        }
+    }
+}

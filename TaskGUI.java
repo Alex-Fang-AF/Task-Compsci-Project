@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 public class TaskGUI extends JFrame {
-    private MyCalendar calendar;
+    final private MyCalendar calendar;
     private JPanel mainPanel;
     private JPanel inputPanel;
     private JPanel buttonPanel;

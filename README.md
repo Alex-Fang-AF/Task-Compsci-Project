@@ -1,10 +1,12 @@
 # Task-Compsci-Project
-<<<<<<< HEAD
-Creating a Task Manager thingy with a calendar
+```markdown
+# Task-Compsci-Project
+
+Creating a simple Task Manager with a calendar-backed GUI.
 
 ## Java 21 (LTS) upgrade / run instructions
 
-Prerequisite: install a Java 21 JDK and set `JAVA_HOME` to the JDK installation, and add `%JAVA_HOME%\bin` to your `PATH`.
+Prerequisite: install a Java 21 JDK and set `JAVA_HOME` to the JDK installation, and add `%JAVA_HOME%\\bin` to your `PATH`.
 
 - Compile:
 
@@ -23,13 +25,8 @@ If you don't have a JDK, download a Java 21 build from a trusted provider (Eclip
 
 Notes:
 - The GUI entry point is `Driver` (which launches `TaskGUI`).
-- I fixed `MyCalendar` and `Task` so the sources compile under modern JDKs (including Java 21).
-=======
-
-Requirements:
+- The project sources compile under modern JDKs (including Java 21).
+```
 Good GUI that is readable:
-GUI is visually pleasing:
-GUI is audibly pleasing:
-Program runs in a reasonable time:
->>>>>>> b71ea5a1c5dec84a6d7425c41d74a3fc46c95ba6
 
+GUI is visually pleasing:

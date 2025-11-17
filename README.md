@@ -1,2 +1,8 @@
 # Task-Compsci-Project
-Creating a Task Manager thingy with a calendar
+
+Requirements:
+Good GUI that is readable:
+GUI is visually pleasing:
+GUI is audibly pleasing:
+Program runs in a reasonable time:
+

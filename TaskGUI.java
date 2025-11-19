@@ -4,8 +4,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaskGUI extends JFrame {
     final private MyCalendar calendar;
@@ -20,12 +23,20 @@ public class TaskGUI extends JFrame {
     private JButton addTaskButton;
     private JButton showTasksButton;
     private JButton removeTaskButton;
+    // Calendar UI fields
+    private JPanel calendarPanel;
+    private JLabel monthLabel;
+    private List<JButton> dayButtons = new ArrayList<>();
+    private YearMonth currentYearMonth;
+    private LocalDate selectedDate;
 
     // Constructor
     public TaskGUI() {
         calendar = new MyCalendar();
+        currentYearMonth = YearMonth.from(calendar.getCurrentDate());
         initializeFrame();
         createPanels();
+        refreshCalendar();
         setVisible(true);
     }
 
@@ -47,6 +58,9 @@ public class TaskGUI extends JFrame {
         // Input panel for task creation
         createInputPanel();
 
+        // Calendar panel for month view
+        createCalendarPanel();
+
         // Button panel for actions
         createButtonPanel();
 
@@ -61,6 +75,7 @@ public class TaskGUI extends JFrame {
         // Add sections to main panel
         mainPanel.add(topSection, BorderLayout.NORTH);
         mainPanel.add(displayPanel, BorderLayout.CENTER);
+        mainPanel.add(calendarPanel, BorderLayout.WEST);
 
         // Add main panel to frame
         add(mainPanel);
@@ -152,6 +167,7 @@ public class TaskGUI extends JFrame {
             dueDateField.setText("");
             JOptionPane.showMessageDialog(this, "Task added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             showAllTasks();
+            refreshCalendar();
         } catch (DateTimeParseException ex) {
             JOptionPane.showMessageDialog(this, "Invalid date format. Use yyyy-MM-dd.", "Date Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -190,10 +206,108 @@ public class TaskGUI extends JFrame {
             if (found) {
                 JOptionPane.showMessageDialog(this, "Task removed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 showAllTasks();
+                refreshCalendar();
             } else {
                 JOptionPane.showMessageDialog(this, "Task not found.", "Error", JOptionPane.WARNING_MESSAGE);
             }
         }
+    }
+
+    // Create a month-view calendar panel with day buttons
+    private void createCalendarPanel() {
+        calendarPanel = new JPanel(new BorderLayout(5,5));
+        calendarPanel.setBorder(BorderFactory.createTitledBorder("Calendar"));
+
+        JPanel nav = new JPanel(new BorderLayout());
+        JButton prev = new JButton("<");
+        JButton next = new JButton(">");
+        monthLabel = new JLabel("", SwingConstants.CENTER);
+        nav.add(prev, BorderLayout.WEST);
+        nav.add(monthLabel, BorderLayout.CENTER);
+        nav.add(next, BorderLayout.EAST);
+
+        prev.addActionListener(e -> {
+            currentYearMonth = currentYearMonth.minusMonths(1);
+            refreshCalendar();
+        });
+        next.addActionListener(e -> {
+            currentYearMonth = currentYearMonth.plusMonths(1);
+            refreshCalendar();
+        });
+
+        calendarPanel.add(nav, BorderLayout.NORTH);
+
+        JPanel grid = new JPanel(new GridLayout(7, 7));
+        String[] dayNames = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+        for (String dn : dayNames) {
+            JLabel lbl = new JLabel(dn, SwingConstants.CENTER);
+            grid.add(lbl);
+        }
+        for (int i = 0; i < 42; i++) {
+            JButton dayBtn = new JButton();
+            dayBtn.setMargin(new Insets(2,2,2,2));
+            dayBtn.setFocusable(false);
+            dayBtn.addActionListener(e -> {
+                String txt = ((JButton)e.getSource()).getText();
+                if (txt != null && !txt.isEmpty()) {
+                    int day = Integer.parseInt(txt);
+                    selectedDate = currentYearMonth.atDay(day);
+                    dueDateField.setText(selectedDate.toString());
+                    showTasksForDate(selectedDate);
+                }
+            });
+            dayButtons.add(dayBtn);
+            grid.add(dayBtn);
+        }
+
+        calendarPanel.add(grid, BorderLayout.CENTER);
+    }
+
+    // Refresh the calendar UI for the currentYearMonth
+    private void refreshCalendar() {
+        if (currentYearMonth == null) {
+            currentYearMonth = YearMonth.from(LocalDate.now());
+        }
+        monthLabel.setText(currentYearMonth.getMonth().toString() + " " + currentYearMonth.getYear());
+
+        LocalDate firstOfMonth = currentYearMonth.atDay(1);
+        int startIndex = firstOfMonth.getDayOfWeek().getValue() % 7; // Sunday -> 0
+        int daysInMonth = currentYearMonth.lengthOfMonth();
+
+        for (int i = 0; i < 42; i++) {
+            JButton btn = dayButtons.get(i);
+            int dayNumber = i - startIndex + 1;
+            if (dayNumber >= 1 && dayNumber <= daysInMonth) {
+                btn.setText(String.valueOf(dayNumber));
+                btn.setEnabled(true);
+                LocalDate d = currentYearMonth.atDay(dayNumber);
+                // Highlight today
+                if (d.equals(LocalDate.now())) {
+                    btn.setBackground(new Color(200, 230, 255));
+                } else {
+                    btn.setBackground(null);
+                }
+            } else {
+                btn.setText("");
+                btn.setEnabled(false);
+                btn.setBackground(null);
+            }
+        }
+    }
+
+    // Show tasks for a specific date in the task list area
+    private void showTasksForDate(LocalDate date) {
+        List<Task> tasks = calendar.getTasksOn(date);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Tasks for ").append(date).append(":\n");
+        if (tasks.isEmpty()) {
+            sb.append("No tasks for this date.");
+        } else {
+            for (Task t : tasks) {
+                sb.append("• ").append(t.getTaskName()).append("\n");
+            }
+        }
+        taskListArea.setText(sb.toString());
     }
 
     // Main method

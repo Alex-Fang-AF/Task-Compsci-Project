@@ -44,6 +44,26 @@ public class MyCalendar {
         }
     }
 
+    // Return an immutable list of tasks for a specific date
+    public List<Task> getTasksOn(LocalDate date) {
+        List<Task> result = new ArrayList<>();
+        for (Task task : tasksList) {
+            if (date.equals(task.getDueDate())) {
+                result.add(task);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+    // Accessors for currentDate to support GUI month navigation
+    public LocalDate getCurrentDate() {
+        return currentDate;
+    }
+
+    public void setCurrentDate(LocalDate date) {
+        this.currentDate = date;
+    }
+
     // Main Method (simple demo)
     public static void main(String[] args) {
         MyCalendar calendar = new MyCalendar();

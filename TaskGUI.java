@@ -23,6 +23,8 @@ public class TaskGUI extends JFrame {
     private JButton addTaskButton;
     private JButton showTasksButton;
     private JButton removeTaskButton;
+    private JButton toggleCalendarButton;
+    private CalendarGUI calendarWindow;
     // Calendar UI fields
     private JPanel calendarPanel;
     private JLabel monthLabel;
@@ -129,9 +131,24 @@ public class TaskGUI extends JFrame {
             }
         });
 
+        // Toggle external month-details window
+        toggleCalendarButton = new JButton("Open Month Details");
+        toggleCalendarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (calendarWindow == null) {
+                    calendarWindow = new CalendarGUI(calendar);
+                }
+                boolean nowVisible = !calendarWindow.isVisible();
+                calendarWindow.setVisible(nowVisible);
+                toggleCalendarButton.setText(nowVisible ? "Hide Month Details" : "Open Month Details");
+            }
+        });
+
         buttonPanel.add(addTaskButton);
         buttonPanel.add(showTasksButton);
         buttonPanel.add(removeTaskButton);
+        buttonPanel.add(toggleCalendarButton);
     }
 
     // Create display panel for tasks
@@ -168,6 +185,7 @@ public class TaskGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Task added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             showAllTasks();
             refreshCalendar();
+            if (calendarWindow != null) calendarWindow.refreshCalendar();
         } catch (DateTimeParseException ex) {
             JOptionPane.showMessageDialog(this, "Invalid date format. Use yyyy-MM-dd.", "Date Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -207,6 +225,7 @@ public class TaskGUI extends JFrame {
                 JOptionPane.showMessageDialog(this, "Task removed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 showAllTasks();
                 refreshCalendar();
+                if (calendarWindow != null) calendarWindow.refreshCalendar();
             } else {
                 JOptionPane.showMessageDialog(this, "Task not found.", "Error", JOptionPane.WARNING_MESSAGE);
             }

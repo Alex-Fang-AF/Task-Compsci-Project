@@ -15,11 +15,18 @@ public class TaskGUI extends JFrame {
     private JTextArea taskListArea;
     private JTextArea eventListArea;
     private JButton addTaskButton;
+<<<<<<< HEAD
     private JButton removeButton;
     
     // Event buttons
     private JButton addEventButton;
     
+=======
+    private JButton showTasksButton;
+    private JButton removeTaskButton;
+    private JButton toggleCalendarButton;
+    private CalendarGUI calendarWindow;
+>>>>>>> 65515c5be2da30c99095432094365b22b0ae4b1d
     // Calendar UI fields
     private JPanel calendarPanel;
     private JLabel monthLabel;
@@ -100,10 +107,31 @@ public class TaskGUI extends JFrame {
         styleButton(addEventButton, new Color(63, 81, 181));
         styleButton(removeButton, new Color(244, 67, 54));
 
+<<<<<<< HEAD
         buttonPanel.add(createButton);
         buttonPanel.add(addTaskButton);
         buttonPanel.add(addEventButton);
         buttonPanel.add(removeButton);
+=======
+        // Toggle external month-details window
+        toggleCalendarButton = new JButton("Open Month Details");
+        toggleCalendarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (calendarWindow == null) {
+                    calendarWindow = new CalendarGUI(calendar);
+                }
+                boolean nowVisible = !calendarWindow.isVisible();
+                calendarWindow.setVisible(nowVisible);
+                toggleCalendarButton.setText(nowVisible ? "Hide Month Details" : "Open Month Details");
+            }
+        });
+
+        buttonPanel.add(addTaskButton);
+        buttonPanel.add(showTasksButton);
+        buttonPanel.add(removeTaskButton);
+        buttonPanel.add(toggleCalendarButton);
+>>>>>>> 65515c5be2da30c99095432094365b22b0ae4b1d
     }
 
     // Open item creation dialog (task or event)
@@ -218,10 +246,36 @@ public class TaskGUI extends JFrame {
         displayPanel.add(eventsPanel);
     }
 
+<<<<<<< HEAD
     // Display all tasks and events
     private void showAllItems() {
         showAllTasks();
         showAllEvents();
+=======
+    // Add a new task
+    private void addTask() {
+        String taskName = taskNameField.getText().trim();
+        String dueDateStr = dueDateField.getText().trim();
+
+        if (taskName.isEmpty() || dueDateStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Input Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            LocalDate dueDate = LocalDate.parse(dueDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
+            Task task = new Task(taskName, dueDate);
+            calendar.addTask(task);
+            taskNameField.setText("");
+            dueDateField.setText("");
+            JOptionPane.showMessageDialog(this, "Task added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            showAllTasks();
+            refreshCalendar();
+            if (calendarWindow != null) calendarWindow.refreshCalendar();
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this, "Invalid date format. Use yyyy-MM-dd.", "Date Error", JOptionPane.ERROR_MESSAGE);
+        }
+>>>>>>> 65515c5be2da30c99095432094365b22b0ae4b1d
     }
 
     // Display all tasks
@@ -297,6 +351,7 @@ public class TaskGUI extends JFrame {
                     listModel.addElement(event.getEventName());
                 }
             }
+<<<<<<< HEAD
         });
         
         // Button panel
@@ -321,6 +376,15 @@ public class TaskGUI extends JFrame {
             if (itemList.getSelectedIndex() == -1) {
                 JOptionPane.showMessageDialog(removeDialog, "Please select an item to remove.", "Error", JOptionPane.WARNING_MESSAGE);
                 return;
+=======
+            if (found) {
+                JOptionPane.showMessageDialog(this, "Task removed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                showAllTasks();
+                refreshCalendar();
+                if (calendarWindow != null) calendarWindow.refreshCalendar();
+            } else {
+                JOptionPane.showMessageDialog(this, "Task not found.", "Error", JOptionPane.WARNING_MESSAGE);
+>>>>>>> 65515c5be2da30c99095432094365b22b0ae4b1d
             }
             
             String selectedItem = itemList.getSelectedValue();

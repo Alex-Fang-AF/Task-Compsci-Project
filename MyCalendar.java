@@ -5,7 +5,8 @@ public class MyCalendar {
 
     // Instance Variables
     private LocalDate currentDate;
-    private List<Task> tasksList = new ArrayList<>();
+    private final List<Task> tasksList = new ArrayList<>();
+    private final List<Event> eventsList = new ArrayList<>();
 
     // Constructor
     public MyCalendar() {
@@ -53,6 +54,42 @@ public class MyCalendar {
             }
         }
         return Collections.unmodifiableList(result);
+    }
+
+    // Event management methods
+    public void addEvent(Event event) {
+        eventsList.add(event);
+        System.out.println("Event added: " + event.getEventName() + " from " + event.getStartDate() + " to " + event.getEndDate());
+    }
+
+    public void removeEvent(Event event) {
+        eventsList.remove(event);
+    }
+
+    public List<Event> getEventsList() {
+        return Collections.unmodifiableList(eventsList);
+    }
+
+    public List<Event> getEventsOn(LocalDate date) {
+        List<Event> result = new ArrayList<>();
+        for (Event event : eventsList) {
+            if (event.occursOn(date)) {
+                result.add(event);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+    public void showEventsOn(LocalDate date) {
+        System.out.println("Event(s) on " + date + ":");
+        List<Event> events = getEventsOn(date);
+        if (events.isEmpty()) {
+            System.out.println("No event(s) on this date.");
+        } else {
+            for (Event event : events) {
+                System.out.println("- " + event.getEventName());
+            }
+        }
     }
 
     // Accessors for currentDate to support GUI month navigation

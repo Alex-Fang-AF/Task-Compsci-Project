@@ -15,18 +15,11 @@ public class TaskGUI extends JFrame {
     private JTextArea taskListArea;
     private JTextArea eventListArea;
     private JButton addTaskButton;
-<<<<<<< HEAD
-    private JButton removeButton;
-    
-    // Event buttons
-    private JButton addEventButton;
-    
-=======
     private JButton showTasksButton;
     private JButton removeTaskButton;
     private JButton toggleCalendarButton;
     private CalendarGUI calendarWindow;
->>>>>>> 65515c5be2da30c99095432094365b22b0ae4b1d
+    
     // Calendar UI fields
     private JPanel calendarPanel;
     private JLabel monthLabel;
@@ -72,8 +65,8 @@ public class TaskGUI extends JFrame {
 
         // Add sections to main panel
         mainPanel.add(buttonPanel, BorderLayout.NORTH);
-        mainPanel.add(displayPanel, BorderLayout.EAST);
         mainPanel.add(calendarPanel, BorderLayout.CENTER);
+        mainPanel.add(displayPanel, BorderLayout.EAST);
 
         // Add main panel to frame
         add(mainPanel);
@@ -90,48 +83,36 @@ public class TaskGUI extends JFrame {
 
         // Task buttons
         addTaskButton = new JButton("Show All Tasks");
-
-        // Event buttons
-        addEventButton = new JButton("Show All Events");
-        removeButton = new JButton("Remove Item");
+        showTasksButton = new JButton("Show Tasks");
+        removeTaskButton = new JButton("Remove Item");
 
         // Add action listeners
         createButton.addActionListener(e -> openItemCreation());
         addTaskButton.addActionListener(e -> showAllItems());
-        addEventButton.addActionListener(e -> showAllItems());
-        removeButton.addActionListener(e -> removeItem());
+        showTasksButton.addActionListener(e -> showAllItems());
+        removeTaskButton.addActionListener(e -> removeItem());
 
         // Style buttons
         styleButton(createButton, new Color(156, 39, 176));
         styleButton(addTaskButton, new Color(33, 150, 243));
-        styleButton(addEventButton, new Color(63, 81, 181));
-        styleButton(removeButton, new Color(244, 67, 54));
+        styleButton(showTasksButton, new Color(33, 150, 243));
+        styleButton(removeTaskButton, new Color(244, 67, 54));
 
-<<<<<<< HEAD
-        buttonPanel.add(createButton);
-        buttonPanel.add(addTaskButton);
-        buttonPanel.add(addEventButton);
-        buttonPanel.add(removeButton);
-=======
-        // Toggle external month-details window
-        toggleCalendarButton = new JButton("Open Month Details");
-        toggleCalendarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (calendarWindow == null) {
-                    calendarWindow = new CalendarGUI(calendar);
-                }
-                boolean nowVisible = !calendarWindow.isVisible();
-                calendarWindow.setVisible(nowVisible);
-                toggleCalendarButton.setText(nowVisible ? "Hide Month Details" : "Open Month Details");
+        // Toggle external week view window
+        toggleCalendarButton = new JButton("Open Week View");
+        toggleCalendarButton.addActionListener(e -> {
+            if (calendarWindow == null) {
+                calendarWindow = new CalendarGUI(calendar);
             }
+            boolean nowVisible = !calendarWindow.isVisible();
+            calendarWindow.setVisible(nowVisible);
+            toggleCalendarButton.setText(nowVisible ? "Hide Week View" : "Open Week View");
         });
 
+        buttonPanel.add(createButton);
         buttonPanel.add(addTaskButton);
-        buttonPanel.add(showTasksButton);
         buttonPanel.add(removeTaskButton);
         buttonPanel.add(toggleCalendarButton);
->>>>>>> 65515c5be2da30c99095432094365b22b0ae4b1d
     }
 
     // Open item creation dialog (task or event)
@@ -173,11 +154,11 @@ public class TaskGUI extends JFrame {
 
     // Create display panel for tasks and events
     private void createDisplayPanel() {
-        displayPanel = new JPanel(new GridLayout(1, 2, 12, 0));
+        displayPanel = new JPanel(new BorderLayout());
         displayPanel.setBackground(new Color(245, 250, 255));
         displayPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-        // Tasks panel (left side)
+        // Top section: Tasks (50% of space)
         JPanel tasksPanel = new JPanel(new BorderLayout());
         tasksPanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
@@ -209,7 +190,7 @@ public class TaskGUI extends JFrame {
         });
         tasksPanel.add(taskScrollPane, BorderLayout.CENTER);
 
-        // Events panel (right side)
+        // Bottom section: Events (50% of space)
         JPanel eventsPanel = new JPanel(new BorderLayout());
         eventsPanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
@@ -241,41 +222,20 @@ public class TaskGUI extends JFrame {
         });
         eventsPanel.add(eventScrollPane, BorderLayout.CENTER);
 
+        // Create a container for both panels with equal sizing
+        JPanel containerPanel = new JPanel(new GridLayout(2, 1, 0, 12));
+        containerPanel.setBackground(new Color(245, 250, 255));
+        containerPanel.add(tasksPanel);
+        containerPanel.add(eventsPanel);
+
         // Add both panels to display panel
-        displayPanel.add(tasksPanel);
-        displayPanel.add(eventsPanel);
+        displayPanel.add(containerPanel, BorderLayout.CENTER);
     }
 
-<<<<<<< HEAD
     // Display all tasks and events
     private void showAllItems() {
         showAllTasks();
         showAllEvents();
-=======
-    // Add a new task
-    private void addTask() {
-        String taskName = taskNameField.getText().trim();
-        String dueDateStr = dueDateField.getText().trim();
-
-        if (taskName.isEmpty() || dueDateStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Input Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        try {
-            LocalDate dueDate = LocalDate.parse(dueDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
-            Task task = new Task(taskName, dueDate);
-            calendar.addTask(task);
-            taskNameField.setText("");
-            dueDateField.setText("");
-            JOptionPane.showMessageDialog(this, "Task added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            showAllTasks();
-            refreshCalendar();
-            if (calendarWindow != null) calendarWindow.refreshCalendar();
-        } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid date format. Use yyyy-MM-dd.", "Date Error", JOptionPane.ERROR_MESSAGE);
-        }
->>>>>>> 65515c5be2da30c99095432094365b22b0ae4b1d
     }
 
     // Display all tasks
@@ -340,7 +300,7 @@ public class TaskGUI extends JFrame {
         listPanel.add(scrollPane, BorderLayout.CENTER);
         
         // Update list based on type selection
-        typeCombo.addActionListener(e -> {
+        typeCombo.addActionListener(evt -> {
             listModel.clear();
             if (typeCombo.getSelectedItem().equals("Task")) {
                 for (Task task : calendar.getTasksList()) {
@@ -351,7 +311,6 @@ public class TaskGUI extends JFrame {
                     listModel.addElement(event.getEventName());
                 }
             }
-<<<<<<< HEAD
         });
         
         // Button panel
@@ -372,19 +331,10 @@ public class TaskGUI extends JFrame {
         cancelBtn.setFocusPainted(false);
         cancelBtn.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100), 1));
         
-        removeBtn.addActionListener(e -> {
+        removeBtn.addActionListener(evt -> {
             if (itemList.getSelectedIndex() == -1) {
                 JOptionPane.showMessageDialog(removeDialog, "Please select an item to remove.", "Error", JOptionPane.WARNING_MESSAGE);
                 return;
-=======
-            if (found) {
-                JOptionPane.showMessageDialog(this, "Task removed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                showAllTasks();
-                refreshCalendar();
-                if (calendarWindow != null) calendarWindow.refreshCalendar();
-            } else {
-                JOptionPane.showMessageDialog(this, "Task not found.", "Error", JOptionPane.WARNING_MESSAGE);
->>>>>>> 65515c5be2da30c99095432094365b22b0ae4b1d
             }
             
             String selectedItem = itemList.getSelectedValue();
@@ -410,7 +360,7 @@ public class TaskGUI extends JFrame {
             removeDialog.dispose();
         });
         
-        cancelBtn.addActionListener(e -> removeDialog.dispose());
+        cancelBtn.addActionListener(evt -> removeDialog.dispose());
         
         dialogButtonPanel.add(removeBtn);
         dialogButtonPanel.add(cancelBtn);
@@ -444,8 +394,8 @@ public class TaskGUI extends JFrame {
 
         JPanel nav = new JPanel(new BorderLayout(5, 0));
         nav.setBackground(new Color(245, 250, 255));
-        JButton prev = new JButton("◀");
-        JButton next = new JButton("▶");
+        JButton prev = new JButton("<");
+        JButton next = new JButton(">");
         monthLabel = new JLabel("", SwingConstants.CENTER);
         monthLabel.setFont(new Font("Arial", Font.BOLD, 13));
         monthLabel.setForeground(new Color(50, 100, 150));
@@ -469,31 +419,69 @@ public class TaskGUI extends JFrame {
 
         calendarPanel.add(nav, BorderLayout.NORTH);
 
-        JPanel grid = new JPanel(new GridLayout(7, 7, 2, 2));
+        // Panel to hold the dynamically sized grid
+        JPanel gridContainer = new JPanel(new BorderLayout());
+        gridContainer.setBackground(new Color(245, 250, 255));
+        dayButtons.clear(); // Clear any previous buttons
+        createCalendarGrid(gridContainer);
+
+        calendarPanel.add(gridContainer, BorderLayout.CENTER);
+    }
+
+    // Create calendar grid with dynamic sizing based on the current month
+    private void createCalendarGrid(JPanel gridContainer) {
+        if (currentYearMonth == null) {
+            currentYearMonth = YearMonth.from(LocalDate.now());
+        }
+
+        LocalDate firstOfMonth = currentYearMonth.atDay(1);
+        int startIndex = firstOfMonth.getDayOfWeek().getValue() % 7; // Sunday -> 0
+        int daysInMonth = currentYearMonth.lengthOfMonth();
+        int totalCells = startIndex + daysInMonth;
+        int rows = (int) Math.ceil((double) totalCells / 7);
+        int totalGridCells = rows * 7; // Fill complete rows
+
+        JPanel grid = new JPanel(new GridLayout(rows + 1, 7, 2, 2));
         grid.setBackground(new Color(245, 250, 255));
-        String[] dayNames = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+
+        // Add day name headers
+        String[] dayNames = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
         for (String dn : dayNames) {
             JLabel lbl = new JLabel(dn, SwingConstants.CENTER);
             lbl.setFont(new Font("Arial", Font.BOLD, 10));
             lbl.setForeground(new Color(50, 100, 150));
             grid.add(lbl);
         }
-        for (int i = 0; i < 42; i++) {
+
+        // Add day buttons, filling the last row with blanks
+        for (int i = 0; i < totalGridCells; i++) {
             JButton dayBtn = new JButton();
             dayBtn.setMargin(new Insets(4, 4, 4, 4));
             dayBtn.setFocusable(false);
             dayBtn.setFont(new Font("Arial", Font.BOLD, 10));
             dayBtn.setBackground(new Color(255, 255, 255));
             dayBtn.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-            dayBtn.addActionListener(e -> {
-                String txt = ((JButton)e.getSource()).getText();
-                if (txt != null && !txt.isEmpty()) {
-                    int day = Integer.parseInt(txt);
+
+            int dayNumber = i - startIndex + 1;
+            if (dayNumber >= 1 && dayNumber <= daysInMonth) {
+                final int day = dayNumber;
+                dayBtn.setText(String.valueOf(day));
+                dayBtn.setEnabled(true);
+                
+                LocalDate d = currentYearMonth.atDay(day);
+                // Highlight today
+                if (d.equals(LocalDate.now())) {
+                    dayBtn.setBackground(new Color(200, 230, 255));
+                }
+
+                dayBtn.addActionListener(e -> {
                     selectedDate = currentYearMonth.atDay(day);
                     showTasksForDate(selectedDate);
-                }
-            });
-            
+                });
+            } else {
+                dayBtn.setEnabled(false);
+            }
+
             // Add hover effect for day buttons
             dayBtn.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
@@ -502,14 +490,18 @@ public class TaskGUI extends JFrame {
                         dayBtn.setBackground(new Color(220, 240, 255));
                     }
                 }
-                
+
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent evt) {
-                    if (dayBtn.isEnabled()) {
-                        LocalDate d = currentYearMonth.atDay(Integer.parseInt(dayBtn.getText()));
-                        if (d.equals(LocalDate.now())) {
-                            dayBtn.setBackground(new Color(200, 230, 255));
-                        } else {
+                    if (dayBtn.isEnabled() && !dayBtn.getText().isEmpty()) {
+                        try {
+                            LocalDate d = currentYearMonth.atDay(Integer.parseInt(dayBtn.getText()));
+                            if (d.equals(LocalDate.now())) {
+                                dayBtn.setBackground(new Color(200, 230, 255));
+                            } else {
+                                dayBtn.setBackground(new Color(255, 255, 255));
+                            }
+                        } catch (NumberFormatException ex) {
                             dayBtn.setBackground(new Color(255, 255, 255));
                         }
                     }
@@ -519,7 +511,8 @@ public class TaskGUI extends JFrame {
             grid.add(dayBtn);
         }
 
-        calendarPanel.add(grid, BorderLayout.CENTER);
+        gridContainer.removeAll();
+        gridContainer.add(grid, BorderLayout.CENTER);
     }
 
     // Refresh the calendar UI for the currentYearMonth
@@ -528,30 +521,9 @@ public class TaskGUI extends JFrame {
             currentYearMonth = YearMonth.from(LocalDate.now());
         }
         monthLabel.setText(currentYearMonth.getMonth().toString() + " " + currentYearMonth.getYear());
-
-        LocalDate firstOfMonth = currentYearMonth.atDay(1);
-        int startIndex = firstOfMonth.getDayOfWeek().getValue() % 7; // Sunday -> 0
-        int daysInMonth = currentYearMonth.lengthOfMonth();
-
-        for (int i = 0; i < 42; i++) {
-            JButton btn = dayButtons.get(i);
-            int dayNumber = i - startIndex + 1;
-            if (dayNumber >= 1 && dayNumber <= daysInMonth) {
-                btn.setText(String.valueOf(dayNumber));
-                btn.setEnabled(true);
-                LocalDate d = currentYearMonth.atDay(dayNumber);
-                // Highlight today
-                if (d.equals(LocalDate.now())) {
-                    btn.setBackground(new Color(200, 230, 255));
-                } else {
-                    btn.setBackground(null);
-                }
-            } else {
-                btn.setText("");
-                btn.setEnabled(false);
-                btn.setBackground(null);
-            }
-        }
+        
+        // Recreate the calendar grid with the new month's layout
+        createCalendarGrid((JPanel) calendarPanel.getComponent(1)); // Get the grid container
     }
 
     // Show tasks for a specific date in the task list area

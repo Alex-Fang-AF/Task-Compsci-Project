@@ -128,11 +128,11 @@ public class Task {
         
         // Status indicator
         if (isCompleted) {
-            sb.append("✓ ");
+            sb.append("[Done] ");
         } else if (isOverdue()) {
-            sb.append("⚠ ");
+            sb.append("[Overdue] ");
         } else {
-            sb.append("• ");
+            sb.append("- ");
         }
         
         // Task name

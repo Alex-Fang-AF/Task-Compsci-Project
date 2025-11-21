@@ -4,6 +4,7 @@ public class Event {
     private String eventName;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String description;
 
     // Constructor
     public Event(String eventName, LocalDate startDate, LocalDate endDate) {
@@ -13,6 +14,18 @@ public class Event {
         this.eventName = eventName;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.description = "";
+    }
+
+    // Constructor with description
+    public Event(String eventName, LocalDate startDate, LocalDate endDate, String description) {
+        if (endDate.isBefore(startDate)) {
+            throw new IllegalArgumentException("End date cannot be before start date.");
+        }
+        this.eventName = eventName;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.description = description != null ? description : "";
     }
 
     // Getters
@@ -26,6 +39,10 @@ public class Event {
 
     public LocalDate getEndDate() {
         return endDate;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     // Setters
@@ -47,6 +64,10 @@ public class Event {
         this.endDate = endDate;
     }
 
+    public void setDescription(String description) {
+        this.description = description != null ? description : "";
+    }
+
     // Check if event spans multiple days
     public boolean isMultiDay() {
         return !startDate.equals(endDate);
@@ -65,10 +86,15 @@ public class Event {
 
     @Override
     public String toString() {
+        String base;
         if (isMultiDay()) {
-            return eventName + " (" + startDate + " to " + endDate + ") [" + getDurationDays() + " days]";
+            base = eventName + " (" + startDate + " to " + endDate + ") [" + getDurationDays() + " days]";
         } else {
-            return eventName + " (" + startDate + ")";
+            base = eventName + " (" + startDate + ")";
         }
+        if (description != null && !description.isEmpty()) {
+            base += " - " + description;
+        }
+        return base;
     }
 }

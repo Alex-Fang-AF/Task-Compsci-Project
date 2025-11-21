@@ -1,7 +1,8 @@
 import java.awt.*;
-import java.time.LocalDate;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -35,6 +36,8 @@ public class TaskGUI extends JFrame {
         refreshCalendar();
         setVisible(true);
     }
+
+    // (removed priority badge) tasks will be ordered by priority when displayed
 
     // Initialize the main frame
     private void initializeFrame() {
@@ -247,7 +250,7 @@ public class TaskGUI extends JFrame {
             StringBuilder sb = new StringBuilder();
             for (Task task : calendar.getTasksList()) {
                 System.out.println("DEBUG: Task - Name: '" + task.getTaskName() + "', Due: " + task.getDueDate());
-                sb.append("• ").append(task.getTaskName()).append(" - Due: ").append(task.getDueDate()).append("\n");
+                sb.append("- ").append(task.getTaskName()).append(" - Due: ").append(task.getDueDate()).append("\n");
             }
             taskListArea.setText(sb.toString());
         }
@@ -393,8 +396,8 @@ public class TaskGUI extends JFrame {
 
         JPanel nav = new JPanel(new BorderLayout(5, 0));
         nav.setBackground(new Color(245, 250, 255));
-        JButton prev = new JButton("<");
-        JButton next = new JButton(">");
+        JButton prev = new JButton("Back");
+        JButton next = new JButton("Next");
         weekLabel = new JLabel("", SwingConstants.CENTER);
         weekLabel.setFont(new Font("Arial", Font.BOLD, 13));
         weekLabel.setForeground(new Color(50, 100, 150));
@@ -436,8 +439,8 @@ public class TaskGUI extends JFrame {
             datePanel.setLayout(new BoxLayout(datePanel, BoxLayout.Y_AXIS));
             datePanel.setOpaque(true);
             
-            JLabel dayNameLabel = new JLabel(dayNames[i], SwingConstants.CENTER);
-            dayNameLabel.setFont(new Font("Arial", Font.BOLD, 9));
+                    JLabel dayNameLabel = new JLabel(dayNames[i], SwingConstants.CENTER);
+                    dayNameLabel.setFont(new Font("Arial", Font.BOLD, 14));
             dayNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             
             JLabel dateLabel = new JLabel(String.valueOf(currentDate.getDayOfMonth()), SwingConstants.CENTER);
@@ -462,7 +465,9 @@ public class TaskGUI extends JFrame {
             contentPanel.setBackground(Color.WHITE);
             contentPanel.setBorder(BorderFactory.createEmptyBorder(4, 3, 4, 3));
             
-            List<Task> tasks = calendar.getTasksOn(currentDate);
+            List<Task> tasks = new ArrayList<>(calendar.getTasksOn(currentDate));
+            // sort by priority: HIGH first, then MEDIUM, then LOW
+            tasks.sort((a, b) -> Integer.compare((b.getPriority() != null ? b.getPriority().ordinal() : -1), (a.getPriority() != null ? a.getPriority().ordinal() : -1)));
             List<Event> events = calendar.getEventsOn(currentDate);
             
             // Display tasks
@@ -472,9 +477,8 @@ public class TaskGUI extends JFrame {
                     if (name.length() > 12) {
                         name = name.substring(0, 10) + "...";
                     }
-                    
-                    JLabel taskLabel = new JLabel("• " + name);
-                    taskLabel.setFont(new Font("Arial", Font.PLAIN, 7));
+                    JLabel taskLabel = new JLabel("- " + name);
+                    taskLabel.setFont(new Font("Arial", Font.PLAIN, 18));
                     taskLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     taskLabel.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 1));
                     contentPanel.add(taskLabel);
@@ -492,8 +496,8 @@ public class TaskGUI extends JFrame {
                         name = name.substring(0, 10) + "...";
                     }
                     
-                    JLabel eventLabel = new JLabel("◆ " + name);
-                    eventLabel.setFont(new Font("Arial", Font.PLAIN, 6));
+                    JLabel eventLabel = new JLabel("- " + name);
+                    eventLabel.setFont(new Font("Arial", Font.PLAIN, 18));
                     eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     eventLabel.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 1));
                     contentPanel.add(eventLabel);
@@ -534,8 +538,8 @@ public class TaskGUI extends JFrame {
             datePanel.setLayout(new BoxLayout(datePanel, BoxLayout.Y_AXIS));
             datePanel.setOpaque(true);
             
-            JLabel dayNameLabel = new JLabel(dayNames[i], SwingConstants.CENTER);
-            dayNameLabel.setFont(new Font("Arial", Font.BOLD, 9));
+                    JLabel dayNameLabel = new JLabel(dayNames[i], SwingConstants.CENTER);
+                    dayNameLabel.setFont(new Font("Arial", Font.BOLD, 14));
             dayNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             
             JLabel dateLabel = new JLabel(String.valueOf(currentDate.getDayOfMonth()), SwingConstants.CENTER);
@@ -560,7 +564,9 @@ public class TaskGUI extends JFrame {
             contentPanel.setBackground(Color.WHITE);
             contentPanel.setBorder(BorderFactory.createEmptyBorder(4, 3, 4, 3));
             
-            List<Task> tasks = calendar.getTasksOn(currentDate);
+            List<Task> tasks = new ArrayList<>(calendar.getTasksOn(currentDate));
+            // sort by priority: HIGH first
+            tasks.sort((a, b) -> Integer.compare((b.getPriority() != null ? b.getPriority().ordinal() : -1), (a.getPriority() != null ? a.getPriority().ordinal() : -1)));
             List<Event> events = calendar.getEventsOn(currentDate);
             
             // Display tasks
@@ -570,9 +576,8 @@ public class TaskGUI extends JFrame {
                     if (name.length() > 12) {
                         name = name.substring(0, 10) + "...";
                     }
-                    
-                    JLabel taskLabel = new JLabel("• " + name);
-                    taskLabel.setFont(new Font("Arial", Font.PLAIN, 7));
+                    JLabel taskLabel = new JLabel("- " + name);
+                    taskLabel.setFont(new Font("Arial", Font.PLAIN, 18));
                     taskLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     taskLabel.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 1));
                     contentPanel.add(taskLabel);
@@ -590,8 +595,8 @@ public class TaskGUI extends JFrame {
                         name = name.substring(0, 10) + "...";
                     }
                     
-                    JLabel eventLabel = new JLabel("◆ " + name);
-                    eventLabel.setFont(new Font("Arial", Font.PLAIN, 6));
+                    JLabel eventLabel = new JLabel("- " + name);
+                    eventLabel.setFont(new Font("Arial", Font.PLAIN, 12));
                     eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     eventLabel.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 1));
                     contentPanel.add(eventLabel);
@@ -620,8 +625,8 @@ public class TaskGUI extends JFrame {
         if (tasks.isEmpty()) {
             sb.append("No tasks for this date.");
         } else {
-            for (Task t : tasks) {
-                sb.append("• ").append(t.getTaskName()).append("\n");
+                for (Task t : tasks) {
+                sb.append("- ").append(t.getTaskName()).append("\n");
             }
         }
         taskListArea.setText(sb.toString());
@@ -637,7 +642,7 @@ public class TaskGUI extends JFrame {
         } else {
             StringBuilder sb = new StringBuilder();
             for (Event event : events) {
-                sb.append("• ").append(event).append("\n");
+                sb.append("- ").append(event).append("\n");
             }
             eventListArea.setText(sb.toString());
         }

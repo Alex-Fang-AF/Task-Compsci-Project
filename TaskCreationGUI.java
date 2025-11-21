@@ -15,9 +15,11 @@ public class TaskCreationGUI extends JDialog {
     private JTextField taskNameField;
     private JTextField taskDueDateField;
     private JComboBox<String> taskPriorityCombo;
+    private JTextArea taskDescriptionArea;
     private JTextField eventNameField;
     private JTextField eventStartDateField;
     private JTextField eventEndDateField;
+    private JTextArea eventDescriptionArea;
     private JButton createButton;
     private JButton cancelButton;
     private boolean itemCreated = false;
@@ -63,9 +65,10 @@ public class TaskCreationGUI extends JDialog {
 
     private void initializeDialog() {
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        setSize(500, 350);
+        // Increased size to better accommodate description fields and allow user resizing
+        setSize(700, 520);
         setLocationRelativeTo(getParent());
-        setResizable(false);
+        setResizable(true);
 
         // Main panel
         JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
@@ -125,7 +128,7 @@ public class TaskCreationGUI extends JDialog {
         gbc.anchor = GridBagConstraints.WEST;
 
         // Name field
-        JLabel nameLabel = new JLabel("Name:");
+        JLabel nameLabel = new JLabel("Task Name:");
         nameLabel.setFont(new Font("Arial", Font.BOLD, 11));
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -133,6 +136,7 @@ public class TaskCreationGUI extends JDialog {
         panel.add(nameLabel, gbc);
 
         taskNameField = new JTextField(20);
+        taskNameField.setToolTipText("Enter a short descriptive task name");
         styleTextField(taskNameField);
         gbc.gridx = 1;
         gbc.gridy = 0;
@@ -141,7 +145,7 @@ public class TaskCreationGUI extends JDialog {
         panel.add(taskNameField, gbc);
 
         // Due date field with picker button
-        JLabel dueDateLabel = new JLabel("Due Date:");
+        JLabel dueDateLabel = new JLabel("Due Date (dd/MM/yyyy):");
         dueDateLabel.setFont(new Font("Arial", Font.BOLD, 11));
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -153,6 +157,7 @@ public class TaskCreationGUI extends JDialog {
         dueDatePanel.setBackground(new Color(245, 250, 255));
         
         taskDueDateField = new JTextField(15);
+        taskDueDateField.setToolTipText("Accepted formats: dd/MM/yyyy, d/M/yyyy, MM/dd/yyyy, yyyy-MM-dd");
         styleTextField(taskDueDateField);
         dueDatePanel.add(taskDueDateField, BorderLayout.CENTER);
 
@@ -184,11 +189,37 @@ public class TaskCreationGUI extends JDialog {
         taskPriorityCombo = new JComboBox<>(priorities);
         taskPriorityCombo.setSelectedItem("Moderate");
         taskPriorityCombo.setFont(new Font("Arial", Font.PLAIN, 11));
+        taskPriorityCombo.setToolTipText("Select the urgency of this task (High shown first in calendar)");
         gbc.gridx = 1;
         gbc.gridy = 2;
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(taskPriorityCombo, gbc);
+
+        // Description field (optional)
+        JLabel descLabel = new JLabel("Description (optional):");
+        descLabel.setFont(new Font("Arial", Font.BOLD, 11));
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        panel.add(descLabel, gbc);
+
+        taskDescriptionArea = new JTextArea(4, 24);
+        taskDescriptionArea.setLineWrap(true);
+        taskDescriptionArea.setWrapStyleWord(true);
+        taskDescriptionArea.setFont(new Font("Arial", Font.PLAIN, 11));
+        taskDescriptionArea.setToolTipText("Optional: add details, location, or notes about the task");
+        taskDescriptionArea.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(150, 150, 200), 1),
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+        JScrollPane taskDescScroll = new JScrollPane(taskDescriptionArea);
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel.add(taskDescScroll, gbc);
 
         return panel;
     }
@@ -286,6 +317,31 @@ public class TaskCreationGUI extends JDialog {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(endDatePanel, gbc);
 
+        // Description for event
+        JLabel descLabel = new JLabel("Description (optional):");
+        descLabel.setFont(new Font("Arial", Font.BOLD, 11));
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        panel.add(descLabel, gbc);
+
+        eventDescriptionArea = new JTextArea(4, 24);
+        eventDescriptionArea.setLineWrap(true);
+        eventDescriptionArea.setWrapStyleWord(true);
+        eventDescriptionArea.setFont(new Font("Arial", Font.PLAIN, 11));
+        eventDescriptionArea.setToolTipText("Optional: add details or notes about the event");
+        eventDescriptionArea.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(150, 150, 200), 1),
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+        JScrollPane eventDescScroll = new JScrollPane(eventDescriptionArea);
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel.add(eventDescScroll, gbc);
+
         return panel;
     }
 
@@ -357,7 +413,9 @@ public class TaskCreationGUI extends JDialog {
                         }
                     }
                 }
-                Task task = new Task(name, dueDate, priority, "");
+                String taskDesc = "";
+                if (taskDescriptionArea != null) taskDesc = taskDescriptionArea.getText().trim();
+                Task task = new Task(name, dueDate, priority, taskDesc);
                 System.out.println("DEBUG: Creating task - Name: '" + name + "', Due Date: " + dueDate);
                 System.out.println("DEBUG: Task object - Name: '" + task.getTaskName() + "'");
                 calendar.addTask(task);
@@ -373,7 +431,9 @@ public class TaskCreationGUI extends JDialog {
                 }
                 LocalDate startDate = parseDate(startDateStr);
                 LocalDate endDate = parseDate(endDateStr);
-                Event event = new Event(name, startDate, endDate);
+                String eventDesc = "";
+                if (eventDescriptionArea != null) eventDesc = eventDescriptionArea.getText().trim();
+                Event event = new Event(name, startDate, endDate, eventDesc);
                 calendar.addEvent(event);
                 itemCreated = true;
                 JOptionPane.showMessageDialog(this, "Event created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -393,6 +453,8 @@ public class TaskCreationGUI extends JDialog {
         if (eventNameField != null) eventNameField.setText("");
         if (eventStartDateField != null) eventStartDateField.setText("");
         if (eventEndDateField != null) eventEndDateField.setText("");
+        if (taskDescriptionArea != null) taskDescriptionArea.setText("");
+        if (eventDescriptionArea != null) eventDescriptionArea.setText("");
     }
 
     private void styleTextField(JTextField field) {

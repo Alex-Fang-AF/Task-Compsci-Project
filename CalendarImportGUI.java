@@ -38,8 +38,8 @@ public class CalendarImportGUI extends JFrame {
 
         // Top navigation
         JPanel top = new JPanel(new BorderLayout());
-        JButton prev = new JButton("<");
-        JButton next = new JButton(">");
+        JButton prev = new JButton("Back");
+        JButton next = new JButton("Next");
         monthLabel = new JLabel("", SwingConstants.CENTER);
         top.add(prev, BorderLayout.WEST);
         top.add(monthLabel, BorderLayout.CENTER);
@@ -141,7 +141,7 @@ public class CalendarImportGUI extends JFrame {
                 sb.append("No tasks.");
             } else {
                 for (Task t : tasks) {
-                    sb.append("• ").append(t.getTaskName()).append("\n");
+                    sb.append("- ").append(t.getTaskName()).append("\n");
                 }
             }
             detailsArea.setText(sb.toString());

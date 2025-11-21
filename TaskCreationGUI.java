@@ -1,10 +1,12 @@
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 public class TaskCreationGUI extends JDialog {
     private final MyCalendar calendar;
@@ -20,9 +22,32 @@ public class TaskCreationGUI extends JDialog {
     private JButton cancelButton;
     private boolean itemCreated = false;
     
-    // Date formatter for dd/MM/yyyy format
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    // Display formatter (used when showing dates in fields)
+    private static final DateTimeFormatter DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         .withResolverStyle(ResolverStyle.STRICT);
+
+    // Parsers: try multiple common input formats to be more forgiving for users
+    private static final List<DateTimeFormatter> PARSE_FORMATTERS = new ArrayList<>();
+    static {
+        PARSE_FORMATTERS.add(DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT));
+        PARSE_FORMATTERS.add(DateTimeFormatter.ofPattern("d/M/uuuu").withResolverStyle(ResolverStyle.STRICT));
+        PARSE_FORMATTERS.add(DateTimeFormatter.ofPattern("MM/dd/uuuu").withResolverStyle(ResolverStyle.STRICT));
+        PARSE_FORMATTERS.add(DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT));
+    }
+
+    // Helper to parse a date string using the list of parsers above
+    private LocalDate parseDate(String dateStr) throws DateTimeParseException {
+        DateTimeParseException lastEx = null;
+        for (DateTimeFormatter fmt : PARSE_FORMATTERS) {
+            try {
+                return LocalDate.parse(dateStr, fmt);
+            } catch (DateTimeParseException ex) {
+                lastEx = ex;
+            }
+        }
+        // If none matched, throw the last exception
+        throw lastEx != null ? lastEx : new DateTimeParseException("Unparseable date", dateStr, 0);
+    }
     
     // Panels for mode switching
     private JPanel taskPanel;
@@ -131,8 +156,8 @@ public class TaskCreationGUI extends JDialog {
         styleTextField(taskDueDateField);
         dueDatePanel.add(taskDueDateField, BorderLayout.CENTER);
 
-        JButton taskDatePickerBtn = new JButton("📅");
-        taskDatePickerBtn.setFont(new Font("Arial", Font.PLAIN, 14));
+        JButton taskDatePickerBtn = new JButton("Pick");
+        taskDatePickerBtn.setFont(new Font("Arial", Font.PLAIN, 12));
         taskDatePickerBtn.setPreferredSize(new Dimension(35, 30));
         taskDatePickerBtn.setBackground(new Color(100, 200, 255));
         taskDatePickerBtn.setForeground(Color.WHITE);
@@ -215,8 +240,8 @@ public class TaskCreationGUI extends JDialog {
         styleTextField(eventStartDateField);
         startDatePanel.add(eventStartDateField, BorderLayout.CENTER);
 
-        JButton eventStartDatePickerBtn = new JButton("📅");
-        eventStartDatePickerBtn.setFont(new Font("Arial", Font.PLAIN, 14));
+        JButton eventStartDatePickerBtn = new JButton("Pick");
+        eventStartDatePickerBtn.setFont(new Font("Arial", Font.PLAIN, 12));
         eventStartDatePickerBtn.setPreferredSize(new Dimension(35, 30));
         eventStartDatePickerBtn.setBackground(new Color(100, 200, 255));
         eventStartDatePickerBtn.setForeground(Color.WHITE);
@@ -246,8 +271,8 @@ public class TaskCreationGUI extends JDialog {
         styleTextField(eventEndDateField);
         endDatePanel.add(eventEndDateField, BorderLayout.CENTER);
 
-        JButton eventEndDatePickerBtn = new JButton("📅");
-        eventEndDatePickerBtn.setFont(new Font("Arial", Font.PLAIN, 14));
+        JButton eventEndDatePickerBtn = new JButton("Pick");
+        eventEndDatePickerBtn.setFont(new Font("Arial", Font.PLAIN, 12));
         eventEndDatePickerBtn.setPreferredSize(new Dimension(35, 30));
         eventEndDatePickerBtn.setBackground(new Color(100, 200, 255));
         eventEndDatePickerBtn.setForeground(Color.WHITE);
@@ -316,7 +341,7 @@ public class TaskCreationGUI extends JDialog {
                     JOptionPane.showMessageDialog(this, "Please enter a due date.", "Input Error", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                LocalDate dueDate = LocalDate.parse(dueDateStr, DATE_FORMATTER);
+                LocalDate dueDate = parseDate(dueDateStr);
                 // Determine priority from combo box
                 Task.TaskPriority priority = Task.TaskPriority.MEDIUM;
                 if (taskPriorityCombo != null) {
@@ -346,8 +371,8 @@ public class TaskCreationGUI extends JDialog {
                     JOptionPane.showMessageDialog(this, "Please enter both start and end dates.", "Input Error", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                LocalDate startDate = LocalDate.parse(startDateStr, DATE_FORMATTER);
-                LocalDate endDate = LocalDate.parse(endDateStr, DATE_FORMATTER);
+                LocalDate startDate = parseDate(startDateStr);
+                LocalDate endDate = parseDate(endDateStr);
                 Event event = new Event(name, startDate, endDate);
                 calendar.addEvent(event);
                 itemCreated = true;
@@ -356,7 +381,7 @@ public class TaskCreationGUI extends JDialog {
             clearFields();
             dispose();
         } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid date format. Use dd/MM/yyyy (e.g., 25/12/2025).", "Date Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Invalid date format. Accepted formats: dd/MM/yyyy, d/M/yyyy, MM/dd/yyyy, or yyyy-MM-dd (e.g., 25/12/2025).", "Date Error", JOptionPane.ERROR_MESSAGE);
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Date Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -427,14 +452,14 @@ public class TaskCreationGUI extends JDialog {
         try {
             String currentText = taskDueDateField.getText().trim();
             if (!currentText.isEmpty()) {
-                initialDate = LocalDate.parse(currentText, DATE_FORMATTER);
+                initialDate = parseDate(currentText);
             }
         } catch (DateTimeParseException e) {
             // Use today's date if current text is invalid
         }
         
         DatePickerDialog picker = new DatePickerDialog(this, initialDate, selectedDate -> {
-            taskDueDateField.setText(selectedDate.format(DATE_FORMATTER));
+            taskDueDateField.setText(selectedDate.format(DISPLAY_FORMATTER));
         });
         picker.setVisible(true);
     }
@@ -445,14 +470,14 @@ public class TaskCreationGUI extends JDialog {
         try {
             String currentText = eventStartDateField.getText().trim();
             if (!currentText.isEmpty()) {
-                initialDate = LocalDate.parse(currentText, DATE_FORMATTER);
+                initialDate = parseDate(currentText);
             }
         } catch (DateTimeParseException e) {
             // Use today's date if current text is invalid
         }
         
         DatePickerDialog picker = new DatePickerDialog(this, initialDate, selectedDate -> {
-            eventStartDateField.setText(selectedDate.format(DATE_FORMATTER));
+            eventStartDateField.setText(selectedDate.format(DISPLAY_FORMATTER));
         });
         picker.setVisible(true);
     }
@@ -463,14 +488,14 @@ public class TaskCreationGUI extends JDialog {
         try {
             String currentText = eventEndDateField.getText().trim();
             if (!currentText.isEmpty()) {
-                initialDate = LocalDate.parse(currentText, DATE_FORMATTER);
+                initialDate = parseDate(currentText);
             }
         } catch (DateTimeParseException e) {
             // Use today's date if current text is invalid
         }
         
         DatePickerDialog picker = new DatePickerDialog(this, initialDate, selectedDate -> {
-            eventEndDateField.setText(selectedDate.format(DATE_FORMATTER));
+            eventEndDateField.setText(selectedDate.format(DISPLAY_FORMATTER));
         });
         picker.setVisible(true);
     }

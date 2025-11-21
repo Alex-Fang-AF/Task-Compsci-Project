@@ -1,9 +1,8 @@
-import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.DayOfWeek;
 import java.util.function.Consumer;
+import javax.swing.*;
 
 public class DatePickerDialog extends JDialog {
     private LocalDate selectedDate = null;
@@ -55,8 +54,8 @@ public class DatePickerDialog extends JDialog {
         panel.setBackground(new Color(245, 250, 255));
 
         // Previous month button
-        JButton prevBtn = new JButton("◄");
-        prevBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        JButton prevBtn = new JButton("Back");
+        prevBtn.setFont(new Font("Arial", Font.BOLD, 12));
         prevBtn.setBackground(new Color(156, 39, 176));
         prevBtn.setForeground(Color.WHITE);
         prevBtn.setFocusPainted(false);
@@ -74,8 +73,8 @@ public class DatePickerDialog extends JDialog {
         panel.add(monthLabel, BorderLayout.CENTER);
 
         // Next month button
-        JButton nextBtn = new JButton("►");
-        nextBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        JButton nextBtn = new JButton("Next");
+        nextBtn.setFont(new Font("Arial", Font.BOLD, 12));
         nextBtn.setBackground(new Color(156, 39, 176));
         nextBtn.setForeground(Color.WHITE);
         nextBtn.setFocusPainted(false);

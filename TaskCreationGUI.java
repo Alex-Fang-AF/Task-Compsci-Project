@@ -4,6 +4,7 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 public class TaskCreationGUI extends JDialog {
     private final MyCalendar calendar;
@@ -11,12 +12,17 @@ public class TaskCreationGUI extends JDialog {
     private JButton toggleModeButton;
     private JTextField taskNameField;
     private JTextField taskDueDateField;
+    private JComboBox<String> taskPriorityCombo;
     private JTextField eventNameField;
     private JTextField eventStartDateField;
     private JTextField eventEndDateField;
     private JButton createButton;
     private JButton cancelButton;
     private boolean itemCreated = false;
+    
+    // Date formatter for dd/MM/yyyy format
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        .withResolverStyle(ResolverStyle.STRICT);
     
     // Panels for mode switching
     private JPanel taskPanel;
@@ -79,7 +85,7 @@ public class TaskCreationGUI extends JDialog {
     }
 
     private JPanel createTaskPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 2, 15, 12));
+        JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(new Color(245, 250, 255));
         panel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
@@ -89,27 +95,81 @@ public class TaskCreationGUI extends JDialog {
             new Color(50, 100, 150)
         ));
 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+
         // Name field
         JLabel nameLabel = new JLabel("Name:");
         nameLabel.setFont(new Font("Arial", Font.BOLD, 11));
-        taskNameField = new JTextField();
-        styleTextField(taskNameField);
-        panel.add(nameLabel);
-        panel.add(taskNameField);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
+        panel.add(nameLabel, gbc);
 
-        // Due date field
-        JLabel dueDateLabel = new JLabel("Due Date (yyyy-MM-dd):");
+        taskNameField = new JTextField(20);
+        styleTextField(taskNameField);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(taskNameField, gbc);
+
+        // Due date field with picker button
+        JLabel dueDateLabel = new JLabel("Due Date:");
         dueDateLabel.setFont(new Font("Arial", Font.BOLD, 11));
-        taskDueDateField = new JTextField();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        panel.add(dueDateLabel, gbc);
+
+        JPanel dueDatePanel = new JPanel(new BorderLayout(5, 0));
+        dueDatePanel.setBackground(new Color(245, 250, 255));
+        
+        taskDueDateField = new JTextField(15);
         styleTextField(taskDueDateField);
-        panel.add(dueDateLabel);
-        panel.add(taskDueDateField);
+        dueDatePanel.add(taskDueDateField, BorderLayout.CENTER);
+
+        JButton taskDatePickerBtn = new JButton("📅");
+        taskDatePickerBtn.setFont(new Font("Arial", Font.PLAIN, 14));
+        taskDatePickerBtn.setPreferredSize(new Dimension(35, 30));
+        taskDatePickerBtn.setBackground(new Color(100, 200, 255));
+        taskDatePickerBtn.setForeground(Color.WHITE);
+        taskDatePickerBtn.setFocusPainted(false);
+        taskDatePickerBtn.addActionListener(e -> openTaskDatePicker());
+        dueDatePanel.add(taskDatePickerBtn, BorderLayout.EAST);
+
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(dueDatePanel, gbc);
+
+        // Priority selector
+        JLabel priorityLabel = new JLabel("Priority:");
+        priorityLabel.setFont(new Font("Arial", Font.BOLD, 11));
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        panel.add(priorityLabel, gbc);
+
+        String[] priorities = {"High", "Moderate", "Low"};
+        taskPriorityCombo = new JComboBox<>(priorities);
+        taskPriorityCombo.setSelectedItem("Moderate");
+        taskPriorityCombo.setFont(new Font("Arial", Font.PLAIN, 11));
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(taskPriorityCombo, gbc);
 
         return panel;
     }
 
     private JPanel createEventPanel() {
-        JPanel panel = new JPanel(new GridLayout(3, 2, 15, 12));
+        JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(new Color(245, 250, 255));
         panel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
@@ -119,29 +179,87 @@ public class TaskCreationGUI extends JDialog {
             new Color(50, 100, 150)
         ));
 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+
         // Name field
         JLabel nameLabel = new JLabel("Name:");
         nameLabel.setFont(new Font("Arial", Font.BOLD, 11));
-        eventNameField = new JTextField();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
+        panel.add(nameLabel, gbc);
+
+        eventNameField = new JTextField(20);
         styleTextField(eventNameField);
-        panel.add(nameLabel);
-        panel.add(eventNameField);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(eventNameField, gbc);
 
-        // Start date field
-        JLabel startLabel = new JLabel("Start Date (yyyy-MM-dd):");
+        // Start date field with picker button
+        JLabel startLabel = new JLabel("Start Date:");
         startLabel.setFont(new Font("Arial", Font.BOLD, 11));
-        eventStartDateField = new JTextField();
-        styleTextField(eventStartDateField);
-        panel.add(startLabel);
-        panel.add(eventStartDateField);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        panel.add(startLabel, gbc);
 
-        // End date field
-        JLabel endLabel = new JLabel("End Date (yyyy-MM-dd):");
+        JPanel startDatePanel = new JPanel(new BorderLayout(5, 0));
+        startDatePanel.setBackground(new Color(245, 250, 255));
+        
+        eventStartDateField = new JTextField(15);
+        styleTextField(eventStartDateField);
+        startDatePanel.add(eventStartDateField, BorderLayout.CENTER);
+
+        JButton eventStartDatePickerBtn = new JButton("📅");
+        eventStartDatePickerBtn.setFont(new Font("Arial", Font.PLAIN, 14));
+        eventStartDatePickerBtn.setPreferredSize(new Dimension(35, 30));
+        eventStartDatePickerBtn.setBackground(new Color(100, 200, 255));
+        eventStartDatePickerBtn.setForeground(Color.WHITE);
+        eventStartDatePickerBtn.setFocusPainted(false);
+        eventStartDatePickerBtn.addActionListener(e -> openEventStartDatePicker());
+        startDatePanel.add(eventStartDatePickerBtn, BorderLayout.EAST);
+
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(startDatePanel, gbc);
+
+        // End date field with picker button
+        JLabel endLabel = new JLabel("End Date:");
         endLabel.setFont(new Font("Arial", Font.BOLD, 11));
-        eventEndDateField = new JTextField();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        panel.add(endLabel, gbc);
+
+        JPanel endDatePanel = new JPanel(new BorderLayout(5, 0));
+        endDatePanel.setBackground(new Color(245, 250, 255));
+        
+        eventEndDateField = new JTextField(15);
         styleTextField(eventEndDateField);
-        panel.add(endLabel);
-        panel.add(eventEndDateField);
+        endDatePanel.add(eventEndDateField, BorderLayout.CENTER);
+
+        JButton eventEndDatePickerBtn = new JButton("📅");
+        eventEndDatePickerBtn.setFont(new Font("Arial", Font.PLAIN, 14));
+        eventEndDatePickerBtn.setPreferredSize(new Dimension(35, 30));
+        eventEndDatePickerBtn.setBackground(new Color(100, 200, 255));
+        eventEndDatePickerBtn.setForeground(Color.WHITE);
+        eventEndDatePickerBtn.setFocusPainted(false);
+        eventEndDatePickerBtn.addActionListener(e -> openEventEndDatePicker());
+        endDatePanel.add(eventEndDatePickerBtn, BorderLayout.EAST);
+
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(endDatePanel, gbc);
 
         return panel;
     }
@@ -198,8 +316,23 @@ public class TaskCreationGUI extends JDialog {
                     JOptionPane.showMessageDialog(this, "Please enter a due date.", "Input Error", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                LocalDate dueDate = LocalDate.parse(dueDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
-                Task task = new Task(name, dueDate);
+                LocalDate dueDate = LocalDate.parse(dueDateStr, DATE_FORMATTER);
+                // Determine priority from combo box
+                Task.TaskPriority priority = Task.TaskPriority.MEDIUM;
+                if (taskPriorityCombo != null) {
+                    Object sel = taskPriorityCombo.getSelectedItem();
+                    if (sel != null) {
+                        String selStr = sel.toString().toLowerCase();
+                        if (selStr.contains("high")) {
+                            priority = Task.TaskPriority.HIGH;
+                        } else if (selStr.contains("low")) {
+                            priority = Task.TaskPriority.LOW;
+                        } else {
+                            priority = Task.TaskPriority.MEDIUM;
+                        }
+                    }
+                }
+                Task task = new Task(name, dueDate, priority, "");
                 System.out.println("DEBUG: Creating task - Name: '" + name + "', Due Date: " + dueDate);
                 System.out.println("DEBUG: Task object - Name: '" + task.getTaskName() + "'");
                 calendar.addTask(task);
@@ -213,8 +346,8 @@ public class TaskCreationGUI extends JDialog {
                     JOptionPane.showMessageDialog(this, "Please enter both start and end dates.", "Input Error", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                LocalDate startDate = LocalDate.parse(startDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
-                LocalDate endDate = LocalDate.parse(endDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
+                LocalDate startDate = LocalDate.parse(startDateStr, DATE_FORMATTER);
+                LocalDate endDate = LocalDate.parse(endDateStr, DATE_FORMATTER);
                 Event event = new Event(name, startDate, endDate);
                 calendar.addEvent(event);
                 itemCreated = true;
@@ -223,7 +356,7 @@ public class TaskCreationGUI extends JDialog {
             clearFields();
             dispose();
         } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid date format. Use yyyy-MM-dd.", "Date Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Invalid date format. Use dd/MM/yyyy (e.g., 25/12/2025).", "Date Error", JOptionPane.ERROR_MESSAGE);
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Date Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -286,5 +419,59 @@ public class TaskCreationGUI extends JDialog {
                 cardLayout.show(inputContainer, "event");
             });
         }
+    }
+
+    // Open date picker for task due date
+    private void openTaskDatePicker() {
+        LocalDate initialDate = LocalDate.now();
+        try {
+            String currentText = taskDueDateField.getText().trim();
+            if (!currentText.isEmpty()) {
+                initialDate = LocalDate.parse(currentText, DATE_FORMATTER);
+            }
+        } catch (DateTimeParseException e) {
+            // Use today's date if current text is invalid
+        }
+        
+        DatePickerDialog picker = new DatePickerDialog(this, initialDate, selectedDate -> {
+            taskDueDateField.setText(selectedDate.format(DATE_FORMATTER));
+        });
+        picker.setVisible(true);
+    }
+
+    // Open date picker for event start date
+    private void openEventStartDatePicker() {
+        LocalDate initialDate = LocalDate.now();
+        try {
+            String currentText = eventStartDateField.getText().trim();
+            if (!currentText.isEmpty()) {
+                initialDate = LocalDate.parse(currentText, DATE_FORMATTER);
+            }
+        } catch (DateTimeParseException e) {
+            // Use today's date if current text is invalid
+        }
+        
+        DatePickerDialog picker = new DatePickerDialog(this, initialDate, selectedDate -> {
+            eventStartDateField.setText(selectedDate.format(DATE_FORMATTER));
+        });
+        picker.setVisible(true);
+    }
+
+    // Open date picker for event end date
+    private void openEventEndDatePicker() {
+        LocalDate initialDate = LocalDate.now();
+        try {
+            String currentText = eventEndDateField.getText().trim();
+            if (!currentText.isEmpty()) {
+                initialDate = LocalDate.parse(currentText, DATE_FORMATTER);
+            }
+        } catch (DateTimeParseException e) {
+            // Use today's date if current text is invalid
+        }
+        
+        DatePickerDialog picker = new DatePickerDialog(this, initialDate, selectedDate -> {
+            eventEndDateField.setText(selectedDate.format(DATE_FORMATTER));
+        });
+        picker.setVisible(true);
     }
 }

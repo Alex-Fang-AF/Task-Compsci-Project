@@ -1,7 +1,7 @@
 import java.awt.*;
 import java.time.LocalDate;
-import java.time.YearMonth;
-import java.util.ArrayList;
+import java.time.DayOfWeek;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -22,15 +22,14 @@ public class TaskGUI extends JFrame {
     
     // Calendar UI fields
     private JPanel calendarPanel;
-    private JLabel monthLabel;
-    private final List<JButton> dayButtons = new ArrayList<>();
-    private YearMonth currentYearMonth;
+    private JLabel weekLabel;
+    private LocalDate currentWeekStart;
     private LocalDate selectedDate;
 
     // Constructor
     public TaskGUI() {
         calendar = new MyCalendar();
-        currentYearMonth = YearMonth.from(calendar.getCurrentDate());
+        currentWeekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
         initializeFrame();
         createPanels();
         refreshCalendar();
@@ -54,11 +53,11 @@ public class TaskGUI extends JFrame {
         mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         mainPanel.setBackground(new Color(245, 250, 255));
 
-        // Calendar panel for month view
-        createCalendarPanel();
-
         // Button panel for actions
         createButtonPanel();
+
+        // Calendar panel for month view
+        createCalendarPanel();
 
         // Display panel for showing tasks and events
         createDisplayPanel();
@@ -98,15 +97,15 @@ public class TaskGUI extends JFrame {
         styleButton(showTasksButton, new Color(33, 150, 243));
         styleButton(removeTaskButton, new Color(244, 67, 54));
 
-        // Toggle external week view window
-        toggleCalendarButton = new JButton("Open Week View");
+        // Toggle external month view window
+        toggleCalendarButton = new JButton("Open Month View");
         toggleCalendarButton.addActionListener(e -> {
             if (calendarWindow == null) {
                 calendarWindow = new CalendarGUI(calendar);
             }
             boolean nowVisible = !calendarWindow.isVisible();
             calendarWindow.setVisible(nowVisible);
-            toggleCalendarButton.setText(nowVisible ? "Hide Week View" : "Open Week View");
+            toggleCalendarButton.setText(nowVisible ? "Hide Month View" : "Open Month View");
         });
 
         buttonPanel.add(createButton);
@@ -380,12 +379,12 @@ public class TaskGUI extends JFrame {
         removeDialog.setVisible(true);
     }
 
-    // Create a month-view calendar panel with day buttons
+    // Create a month-view calendar panel
     private void createCalendarPanel() {
         calendarPanel = new JPanel(new BorderLayout(8, 8));
         calendarPanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
-            "Calendar",
+            "Month View",
             0, 0,
             new Font("Arial", Font.BOLD, 12),
             new Color(50, 100, 150)
@@ -396,12 +395,12 @@ public class TaskGUI extends JFrame {
         nav.setBackground(new Color(245, 250, 255));
         JButton prev = new JButton("<");
         JButton next = new JButton(">");
-        monthLabel = new JLabel("", SwingConstants.CENTER);
-        monthLabel.setFont(new Font("Arial", Font.BOLD, 13));
-        monthLabel.setForeground(new Color(50, 100, 150));
+        weekLabel = new JLabel("", SwingConstants.CENTER);
+        weekLabel.setFont(new Font("Arial", Font.BOLD, 13));
+        weekLabel.setForeground(new Color(50, 100, 150));
         
         nav.add(prev, BorderLayout.WEST);
-        nav.add(monthLabel, BorderLayout.CENTER);
+        nav.add(weekLabel, BorderLayout.CENTER);
         nav.add(next, BorderLayout.EAST);
 
         // Style navigation buttons
@@ -409,121 +408,208 @@ public class TaskGUI extends JFrame {
         styleButton(next, new Color(100, 150, 200));
 
         prev.addActionListener(e -> {
-            currentYearMonth = currentYearMonth.minusMonths(1);
+            currentWeekStart = currentWeekStart.minusWeeks(1);
             refreshCalendar();
         });
         next.addActionListener(e -> {
-            currentYearMonth = currentYearMonth.plusMonths(1);
+            currentWeekStart = currentWeekStart.plusWeeks(1);
             refreshCalendar();
         });
 
         calendarPanel.add(nav, BorderLayout.NORTH);
 
-        // Panel to hold the dynamically sized grid
-        JPanel gridContainer = new JPanel(new BorderLayout());
-        gridContainer.setBackground(new Color(245, 250, 255));
-        dayButtons.clear(); // Clear any previous buttons
-        createCalendarGrid(gridContainer);
-
-        calendarPanel.add(gridContainer, BorderLayout.CENTER);
-    }
-
-    // Create calendar grid with dynamic sizing based on the current month
-    private void createCalendarGrid(JPanel gridContainer) {
-        if (currentYearMonth == null) {
-            currentYearMonth = YearMonth.from(LocalDate.now());
-        }
-
-        LocalDate firstOfMonth = currentYearMonth.atDay(1);
-        int startIndex = firstOfMonth.getDayOfWeek().getValue() % 7; // Sunday -> 0
-        int daysInMonth = currentYearMonth.lengthOfMonth();
-        int totalCells = startIndex + daysInMonth;
-        int rows = (int) Math.ceil((double) totalCells / 7);
-        int totalGridCells = rows * 7; // Fill complete rows
-
-        JPanel grid = new JPanel(new GridLayout(rows + 1, 7, 2, 2));
+        JPanel grid = new JPanel(new GridLayout(1, 7, 5, 5));
         grid.setBackground(new Color(245, 250, 255));
+        grid.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
+        // Add day panels with expanded content
+        String[] dayNames = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+        for (int i = 0; i < 7; i++) {
+            LocalDate currentDate = currentWeekStart.plusDays(i);
+            
+            JPanel dayPanel = new JPanel(new BorderLayout());
+            dayPanel.setBorder(BorderFactory.createLineBorder(new Color(150, 150, 150), 1));
+            dayPanel.setBackground(Color.WHITE);
 
-        // Add day name headers
-        String[] dayNames = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-        for (String dn : dayNames) {
-            JLabel lbl = new JLabel(dn, SwingConstants.CENTER);
-            lbl.setFont(new Font("Arial", Font.BOLD, 10));
-            lbl.setForeground(new Color(50, 100, 150));
-            grid.add(lbl);
-        }
-
-        // Add day buttons, filling the last row with blanks
-        for (int i = 0; i < totalGridCells; i++) {
-            JButton dayBtn = new JButton();
-            dayBtn.setMargin(new Insets(4, 4, 4, 4));
-            dayBtn.setFocusable(false);
-            dayBtn.setFont(new Font("Arial", Font.BOLD, 10));
-            dayBtn.setBackground(new Color(255, 255, 255));
-            dayBtn.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-
-            int dayNumber = i - startIndex + 1;
-            if (dayNumber >= 1 && dayNumber <= daysInMonth) {
-                final int day = dayNumber;
-                dayBtn.setText(String.valueOf(day));
-                dayBtn.setEnabled(true);
-                
-                LocalDate d = currentYearMonth.atDay(day);
-                // Highlight today
-                if (d.equals(LocalDate.now())) {
-                    dayBtn.setBackground(new Color(200, 230, 255));
-                }
-
-                dayBtn.addActionListener(e -> {
-                    selectedDate = currentYearMonth.atDay(day);
-                    showTasksForDate(selectedDate);
-                });
+            // Date header
+            JPanel datePanel = new JPanel();
+            datePanel.setLayout(new BoxLayout(datePanel, BoxLayout.Y_AXIS));
+            datePanel.setOpaque(true);
+            
+            JLabel dayNameLabel = new JLabel(dayNames[i], SwingConstants.CENTER);
+            dayNameLabel.setFont(new Font("Arial", Font.BOLD, 9));
+            dayNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            JLabel dateLabel = new JLabel(String.valueOf(currentDate.getDayOfMonth()), SwingConstants.CENTER);
+            dateLabel.setFont(new Font("Arial", Font.PLAIN, 8));
+            dateLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            // Highlight today
+            if (currentDate.equals(LocalDate.now())) {
+                datePanel.setBackground(new Color(220, 240, 255));
             } else {
-                dayBtn.setEnabled(false);
+                datePanel.setBackground(new Color(240, 240, 240));
             }
+            
+            datePanel.add(dayNameLabel);
+            datePanel.add(dateLabel);
+            datePanel.setBorder(BorderFactory.createEmptyBorder(3, 2, 3, 2));
+            dayPanel.add(datePanel, BorderLayout.NORTH);
 
-            // Add hover effect for day buttons
-            dayBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    if (dayBtn.isEnabled() && !dayBtn.getText().isEmpty()) {
-                        dayBtn.setBackground(new Color(220, 240, 255));
+            // Content area for tasks and events
+            JPanel contentPanel = new JPanel();
+            contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+            contentPanel.setBackground(Color.WHITE);
+            contentPanel.setBorder(BorderFactory.createEmptyBorder(4, 3, 4, 3));
+            
+            List<Task> tasks = calendar.getTasksOn(currentDate);
+            List<Event> events = calendar.getEventsOn(currentDate);
+            
+            // Display tasks
+            if (!tasks.isEmpty()) {
+                for (Task t : tasks) {
+                    String name = t.getTaskName();
+                    if (name.length() > 12) {
+                        name = name.substring(0, 10) + "...";
                     }
+                    
+                    JLabel taskLabel = new JLabel("• " + name);
+                    taskLabel.setFont(new Font("Arial", Font.PLAIN, 7));
+                    taskLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    taskLabel.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 1));
+                    contentPanel.add(taskLabel);
                 }
+            }
+            
+            // Display events
+            if (!events.isEmpty()) {
+                if (!tasks.isEmpty()) {
+                    contentPanel.add(Box.createVerticalStrut(1));
+                }
+                for (Event e : events) {
+                    String name = e.getEventName();
+                    if (name.length() > 12) {
+                        name = name.substring(0, 10) + "...";
+                    }
+                    
+                    JLabel eventLabel = new JLabel("◆ " + name);
+                    eventLabel.setFont(new Font("Arial", Font.PLAIN, 6));
+                    eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    eventLabel.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 1));
+                    contentPanel.add(eventLabel);
+                }
+            }
+            
+            contentPanel.add(Box.createVerticalGlue());
+            
+            JScrollPane scrollPane = new JScrollPane(contentPanel);
+            scrollPane.setBorder(BorderFactory.createEmptyBorder());
+            scrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(4, 0));
+            dayPanel.add(scrollPane, BorderLayout.CENTER);
 
-                @Override
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    if (dayBtn.isEnabled() && !dayBtn.getText().isEmpty()) {
-                        try {
-                            LocalDate d = currentYearMonth.atDay(Integer.parseInt(dayBtn.getText()));
-                            if (d.equals(LocalDate.now())) {
-                                dayBtn.setBackground(new Color(200, 230, 255));
-                            } else {
-                                dayBtn.setBackground(new Color(255, 255, 255));
-                            }
-                        } catch (NumberFormatException ex) {
-                            dayBtn.setBackground(new Color(255, 255, 255));
-                        }
-                    }
-                }
-            });
-            dayButtons.add(dayBtn);
-            grid.add(dayBtn);
+            grid.add(dayPanel);
         }
 
-        gridContainer.removeAll();
-        gridContainer.add(grid, BorderLayout.CENTER);
+        calendarPanel.add(grid, BorderLayout.CENTER);
     }
 
-    // Refresh the calendar UI for the currentYearMonth
+    // Refresh the calendar UI for the current week
     private void refreshCalendar() {
-        if (currentYearMonth == null) {
-            currentYearMonth = YearMonth.from(LocalDate.now());
-        }
-        monthLabel.setText(currentYearMonth.getMonth().toString() + " " + currentYearMonth.getYear());
+        weekLabel.setText("Week of " + currentWeekStart + " to " + currentWeekStart.plusDays(6));
         
-        // Recreate the calendar grid with the new month's layout
-        createCalendarGrid((JPanel) calendarPanel.getComponent(1)); // Get the grid container
+        // Refresh the grid display
+        JPanel grid = (JPanel) calendarPanel.getComponent(1);
+        grid.removeAll();
+        
+        String[] dayNames = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+        for (int i = 0; i < 7; i++) {
+            LocalDate currentDate = currentWeekStart.plusDays(i);
+            
+            JPanel dayPanel = new JPanel(new BorderLayout());
+            dayPanel.setBorder(BorderFactory.createLineBorder(new Color(150, 150, 150), 1));
+            dayPanel.setBackground(Color.WHITE);
+
+            // Date header
+            JPanel datePanel = new JPanel();
+            datePanel.setLayout(new BoxLayout(datePanel, BoxLayout.Y_AXIS));
+            datePanel.setOpaque(true);
+            
+            JLabel dayNameLabel = new JLabel(dayNames[i], SwingConstants.CENTER);
+            dayNameLabel.setFont(new Font("Arial", Font.BOLD, 9));
+            dayNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            JLabel dateLabel = new JLabel(String.valueOf(currentDate.getDayOfMonth()), SwingConstants.CENTER);
+            dateLabel.setFont(new Font("Arial", Font.PLAIN, 8));
+            dateLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            // Highlight today
+            if (currentDate.equals(LocalDate.now())) {
+                datePanel.setBackground(new Color(220, 240, 255));
+            } else {
+                datePanel.setBackground(new Color(240, 240, 240));
+            }
+            
+            datePanel.add(dayNameLabel);
+            datePanel.add(dateLabel);
+            datePanel.setBorder(BorderFactory.createEmptyBorder(3, 2, 3, 2));
+            dayPanel.add(datePanel, BorderLayout.NORTH);
+
+            // Content area
+            JPanel contentPanel = new JPanel();
+            contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+            contentPanel.setBackground(Color.WHITE);
+            contentPanel.setBorder(BorderFactory.createEmptyBorder(4, 3, 4, 3));
+            
+            List<Task> tasks = calendar.getTasksOn(currentDate);
+            List<Event> events = calendar.getEventsOn(currentDate);
+            
+            // Display tasks
+            if (!tasks.isEmpty()) {
+                for (Task t : tasks) {
+                    String name = t.getTaskName();
+                    if (name.length() > 12) {
+                        name = name.substring(0, 10) + "...";
+                    }
+                    
+                    JLabel taskLabel = new JLabel("• " + name);
+                    taskLabel.setFont(new Font("Arial", Font.PLAIN, 7));
+                    taskLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    taskLabel.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 1));
+                    contentPanel.add(taskLabel);
+                }
+            }
+            
+            // Display events
+            if (!events.isEmpty()) {
+                if (!tasks.isEmpty()) {
+                    contentPanel.add(Box.createVerticalStrut(1));
+                }
+                for (Event e : events) {
+                    String name = e.getEventName();
+                    if (name.length() > 12) {
+                        name = name.substring(0, 10) + "...";
+                    }
+                    
+                    JLabel eventLabel = new JLabel("◆ " + name);
+                    eventLabel.setFont(new Font("Arial", Font.PLAIN, 6));
+                    eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    eventLabel.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 1));
+                    contentPanel.add(eventLabel);
+                }
+            }
+            
+            contentPanel.add(Box.createVerticalGlue());
+            
+            JScrollPane scrollPane = new JScrollPane(contentPanel);
+            scrollPane.setBorder(BorderFactory.createEmptyBorder());
+            scrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(4, 0));
+            dayPanel.add(scrollPane, BorderLayout.CENTER);
+
+            grid.add(dayPanel);
+        }
+        
+        grid.revalidate();
+        grid.repaint();
     }
 
     // Show tasks for a specific date in the task list area

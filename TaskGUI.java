@@ -459,8 +459,7 @@ public class TaskGUI extends JFrame {
             contentPanel.setBorder(BorderFactory.createEmptyBorder(4, 3, 4, 3));
             
             List<Task> tasks = new ArrayList<>(calendar.getTasksOn(currentDate));
-            // sort by priority: HIGH first, then MEDIUM, then LOW
-            tasks.sort((a, b) -> Integer.compare((b.getPriority() != null ? b.getPriority().ordinal() : -1), (a.getPriority() != null ? a.getPriority().ordinal() : -1)));
+            // Tasks are already sorted by due date, then by priority in MyCalendar.getTasksOn()
             List<Event> events = calendar.getEventsOn(currentDate);
             
             // Display tasks
@@ -577,8 +576,7 @@ public class TaskGUI extends JFrame {
             contentPanel.setBorder(BorderFactory.createEmptyBorder(4, 3, 4, 3));
             
             List<Task> tasks = new ArrayList<>(calendar.getTasksOn(currentDate));
-            // sort by priority: HIGH first
-            tasks.sort((a, b) -> Integer.compare((b.getPriority() != null ? b.getPriority().ordinal() : -1), (a.getPriority() != null ? a.getPriority().ordinal() : -1)));
+            // Tasks are already sorted by due date, then by priority in MyCalendar.getTasksOn()
             List<Event> events = calendar.getEventsOn(currentDate);
             
             // Display tasks

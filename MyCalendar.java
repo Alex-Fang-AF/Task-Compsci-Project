@@ -28,7 +28,19 @@ public class MyCalendar {
     }
 
     public List<Task> getTasksList() {
-        return Collections.unmodifiableList(tasksList);
+        List<Task> sortedTasks = new ArrayList<>(tasksList);
+        sortedTasks.sort((a, b) -> {
+            // First sort by due date (earlier dates first)
+            int dateComparison = a.getDueDate().compareTo(b.getDueDate());
+            if (dateComparison != 0) {
+                return dateComparison;
+            }
+            // Then sort by priority (HIGH > MEDIUM > LOW)
+            int aPriority = a.getPriority() != null ? a.getPriority().ordinal() : -1;
+            int bPriority = b.getPriority() != null ? b.getPriority().ordinal() : -1;
+            return Integer.compare(bPriority, aPriority);
+        });
+        return Collections.unmodifiableList(sortedTasks);
     }
 
     public void showTasksOn(LocalDate date) {
@@ -45,7 +57,7 @@ public class MyCalendar {
         }
     }
 
-    // Return an immutable list of tasks for a specific date
+    // Return an immutable list of tasks for a specific date (sorted by priority)
     public List<Task> getTasksOn(LocalDate date) {
         List<Task> result = new ArrayList<>();
         for (Task task : tasksList) {
@@ -53,6 +65,12 @@ public class MyCalendar {
                 result.add(task);
             }
         }
+        // Sort by priority (HIGH > MEDIUM > LOW)
+        result.sort((a, b) -> {
+            int aPriority = a.getPriority() != null ? a.getPriority().ordinal() : -1;
+            int bPriority = b.getPriority() != null ? b.getPriority().ordinal() : -1;
+            return Integer.compare(bPriority, aPriority);
+        });
         return Collections.unmodifiableList(result);
     }
 

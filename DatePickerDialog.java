@@ -88,7 +88,7 @@ public class DatePickerDialog extends JDialog {
     }
 
     private JPanel createCalendarPanel() {
-        JPanel panel = new JPanel(new GridLayout(7, 7, 2, 2));
+        JPanel panel = new JPanel(new GridLayout(0, 7, 2, 2));
         panel.setBackground(new Color(245, 250, 255));
 
         // Day headers

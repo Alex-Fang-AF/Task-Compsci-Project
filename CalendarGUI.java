@@ -61,6 +61,8 @@ public class CalendarGUI extends JFrame {
         }
 
         monthLabel.setText(currentYearMonth.getMonth().toString() + " " + currentYearMonth.getYear());
+        monthLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        monthLabel.setForeground(new Color(50, 100, 150));
         LocalDate firstOfMonth = currentYearMonth.atDay(1);
         int startIndex = firstOfMonth.getDayOfWeek().getValue() % 7; // Sunday -> 0
         int daysInMonth = currentYearMonth.lengthOfMonth();

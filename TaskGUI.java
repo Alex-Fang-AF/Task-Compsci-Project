@@ -105,7 +105,7 @@ public class TaskGUI extends JFrame {
 
     // Create button panel for actions
     private void createButtonPanel() {
-        buttonPanel = new JPanel(new GridLayout(2, 2, 15, 12));
+        buttonPanel = new JPanel(new GridLayout(2, 3, 15, 12));
         buttonPanel.setBackground(new Color(245, 250, 255));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -124,7 +124,7 @@ public class TaskGUI extends JFrame {
         removeTaskButton.addActionListener(e -> removeItem());
 
         // Style buttons
-        styleButton(createButton, new Color(156, 39, 176));
+        styleButton(createButton, new Color(76, 175, 80));
         styleButton(addTaskButton, new Color(33, 150, 243));
         styleButton(showTasksButton, new Color(33, 150, 243));
         styleButton(removeTaskButton, new Color(244, 67, 54));
@@ -139,6 +139,7 @@ public class TaskGUI extends JFrame {
             calendarWindow.setVisible(nowVisible);
             toggleCalendarButton.setText(nowVisible ? "Hide Month View" : "Open Month View");
         });
+        styleButton(toggleCalendarButton, new Color(255, 152, 0));
 
         // Button for showing large Tasks page
         JButton showTasksPageButton = new JButton("Open Tasks Page");
@@ -165,9 +166,9 @@ public class TaskGUI extends JFrame {
         styleButton(showEventsPageButton, new Color(33, 150, 243));
 
         buttonPanel.add(createButton);
-        buttonPanel.add(addTaskButton);
         buttonPanel.add(removeTaskButton);
         buttonPanel.add(toggleCalendarButton);
+        buttonPanel.add(addTaskButton);
         buttonPanel.add(showTasksPageButton);
         buttonPanel.add(showEventsPageButton);
     }

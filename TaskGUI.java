@@ -11,10 +11,18 @@ public class TaskGUI extends JFrame {
     final private MyCalendar calendar;
     private JPanel mainPanel;
     private JPanel buttonPanel;
-    private JPanel displayPanel;
+    // right-side display panel removed (we now use separate full-page windows)
+    private JPanel mainContentPanel; // center content area which can show calendar or large task/event pages
+    private JPanel calendarCard;
+    private JPanel tasksCard;
+    private JPanel eventsCard;
+    private TasksPage tasksPageWindow;
+    private EventsPage eventsPageWindow;
     
-    private JTextArea taskListArea;
-    private JTextArea eventListArea;
+    // Small inline area fields removed in favor of full page windows
+    // Larger dedicated areas for full-sized pages
+    private JTextArea largeTaskArea;
+    private JTextArea largeEventArea;
     private JButton addTaskButton;
     private JButton showTasksButton;
     private JButton removeTaskButton;
@@ -62,13 +70,34 @@ public class TaskGUI extends JFrame {
         // Calendar panel for month view
         createCalendarPanel();
 
-        // Display panel for showing tasks and events
-        createDisplayPanel();
+        // Right-side small inline display removed; use full-page windows instead
+
+        // Main center content area - uses CardLayout to show calendar or large pages
+        mainContentPanel = new JPanel(new java.awt.CardLayout());
+        calendarCard = new JPanel(new BorderLayout());
+        calendarCard.add(calendarPanel, BorderLayout.CENTER);
+        // Large task and event cards
+        tasksCard = new JPanel(new BorderLayout());
+        largeTaskArea = new JTextArea();
+        largeTaskArea.setEditable(false);
+        largeTaskArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        JScrollPane largeTaskScroll = new JScrollPane(largeTaskArea);
+        tasksCard.add(largeTaskScroll, BorderLayout.CENTER);
+
+        eventsCard = new JPanel(new BorderLayout());
+        largeEventArea = new JTextArea();
+        largeEventArea.setEditable(false);
+        largeEventArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        JScrollPane largeEventScroll = new JScrollPane(largeEventArea);
+        eventsCard.add(largeEventScroll, BorderLayout.CENTER);
+
+        mainContentPanel.add(calendarCard, "CALENDAR");
+        mainContentPanel.add(tasksCard, "TASKS");
+        mainContentPanel.add(eventsCard, "EVENTS");
 
         // Add sections to main panel
         mainPanel.add(buttonPanel, BorderLayout.NORTH);
-        mainPanel.add(calendarPanel, BorderLayout.CENTER);
-        mainPanel.add(displayPanel, BorderLayout.EAST);
+        mainPanel.add(mainContentPanel, BorderLayout.CENTER);
 
         // Add main panel to frame
         add(mainPanel);
@@ -111,10 +140,36 @@ public class TaskGUI extends JFrame {
             toggleCalendarButton.setText(nowVisible ? "Hide Month View" : "Open Month View");
         });
 
+        // Button for showing large Tasks page
+        JButton showTasksPageButton = new JButton("Open Tasks Page");
+        showTasksPageButton.addActionListener(e -> {
+            // Open the separate TasksPage window
+            if (tasksPageWindow == null) {
+                tasksPageWindow = new TasksPage(calendar);
+            }
+            tasksPageWindow.refresh();
+            tasksPageWindow.setVisible(true);
+        });
+        styleButton(showTasksPageButton, new Color(33, 150, 243));
+
+        // Button for showing large Events page
+        JButton showEventsPageButton = new JButton("Open Events Page");
+        showEventsPageButton.addActionListener(e -> {
+            // Open the separate EventsPage window
+            if (eventsPageWindow == null) {
+                eventsPageWindow = new EventsPage(calendar);
+            }
+            eventsPageWindow.refresh();
+            eventsPageWindow.setVisible(true);
+        });
+        styleButton(showEventsPageButton, new Color(33, 150, 243));
+
         buttonPanel.add(createButton);
         buttonPanel.add(addTaskButton);
         buttonPanel.add(removeTaskButton);
         buttonPanel.add(toggleCalendarButton);
+        buttonPanel.add(showTasksPageButton);
+        buttonPanel.add(showEventsPageButton);
     }
 
     // Open item creation dialog (task or event)
@@ -122,8 +177,7 @@ public class TaskGUI extends JFrame {
         TaskCreationGUI dialog = new TaskCreationGUI(this, calendar);
         dialog.setVisible(true);
         if (dialog.isItemCreated()) {
-            // Refresh both displays and calendar
-            showAllItems();
+            // Refresh calendar only (do not auto-open the Tasks/Events page)
             refreshCalendar();
         }
     }
@@ -156,104 +210,39 @@ public class TaskGUI extends JFrame {
 
     // Create display panel for tasks and events
     private void createDisplayPanel() {
-        displayPanel = new JPanel(new BorderLayout());
-        displayPanel.setBackground(new Color(245, 250, 255));
-        displayPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-
-        // Top section: Tasks (50% of space)
-        JPanel tasksPanel = new JPanel(new BorderLayout());
-        tasksPanel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
-            "Tasks",
-            0, 0,
-            new Font("Arial", Font.BOLD, 12),
-            new Color(50, 100, 150)
-        ));
-        tasksPanel.setBackground(new Color(245, 250, 255));
-
-        taskListArea = new JTextArea();
-        taskListArea.setEditable(false);
-        taskListArea.setLineWrap(true);
-        taskListArea.setWrapStyleWord(true);
-        taskListArea.setFont(new Font("Arial", Font.PLAIN, 12));
-        taskListArea.setBackground(new Color(255, 255, 255));
-        taskListArea.setForeground(new Color(50, 50, 50));
-        taskListArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        taskListArea.setMargin(new Insets(5, 5, 5, 5));
-
-        JScrollPane taskScrollPane = new JScrollPane(taskListArea);
-        taskScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        taskScrollPane.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
-            @Override
-            protected void configureScrollBarColors() {
-                this.thumbColor = new Color(150, 150, 200);
-                this.trackColor = new Color(240, 240, 240);
-            }
-        });
-        tasksPanel.add(taskScrollPane, BorderLayout.CENTER);
-
-        // Bottom section: Events (50% of space)
-        JPanel eventsPanel = new JPanel(new BorderLayout());
-        eventsPanel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
-            "Events",
-            0, 0,
-            new Font("Arial", Font.BOLD, 12),
-            new Color(50, 100, 150)
-        ));
-        eventsPanel.setBackground(new Color(245, 250, 255));
-
-        eventListArea = new JTextArea();
-        eventListArea.setEditable(false);
-        eventListArea.setLineWrap(true);
-        eventListArea.setWrapStyleWord(true);
-        eventListArea.setFont(new Font("Arial", Font.PLAIN, 12));
-        eventListArea.setBackground(new Color(255, 255, 255));
-        eventListArea.setForeground(new Color(50, 50, 50));
-        eventListArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        eventListArea.setMargin(new Insets(5, 5, 5, 5));
-
-        JScrollPane eventScrollPane = new JScrollPane(eventListArea);
-        eventScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        eventScrollPane.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
-            @Override
-            protected void configureScrollBarColors() {
-                this.thumbColor = new Color(150, 150, 200);
-                this.trackColor = new Color(240, 240, 240);
-            }
-        });
-        eventsPanel.add(eventScrollPane, BorderLayout.CENTER);
-
-        // Create a container for both panels with equal sizing
-        JPanel containerPanel = new JPanel(new GridLayout(2, 1, 0, 12));
-        containerPanel.setBackground(new Color(245, 250, 255));
-        containerPanel.add(tasksPanel);
-        containerPanel.add(eventsPanel);
-
-        // Add both panels to display panel
-        displayPanel.add(containerPanel, BorderLayout.CENTER);
+        // Right-side small in-panel display has been removed — nothing to set up here now.
     }
 
     // Display all tasks and events
     private void showAllItems() {
         showAllTasks();
         showAllEvents();
+        // default to open Tasks page when requested
+        if (tasksPageWindow == null) tasksPageWindow = new TasksPage(calendar);
+        tasksPageWindow.refresh();
+        tasksPageWindow.setVisible(true);
+        // Also refresh any open full-page windows
+        if (tasksPageWindow != null) tasksPageWindow.refresh();
+        if (eventsPageWindow != null) eventsPageWindow.refresh();
     }
 
     // Display all tasks
     private void showAllTasks() {
-        taskListArea.setText("");
+        StringBuilder sb = new StringBuilder();
         System.out.println("DEBUG: showAllTasks called. Tasks count: " + calendar.getTasksList().size());
         if (calendar.getTasksList().isEmpty()) {
-            taskListArea.setText("No tasks added yet.");
+            sb.append("No tasks added yet.");
         } else {
-            StringBuilder sb = new StringBuilder();
+            
             for (Task task : calendar.getTasksList()) {
                 System.out.println("DEBUG: Task - Name: '" + task.getTaskName() + "', Due: " + task.getDueDate());
                 sb.append("- ").append(task.getTaskName()).append(" - Due: ").append(task.getDueDate()).append("\n");
             }
-            taskListArea.setText(sb.toString());
         }
+        // Open and refresh the dedicated Tasks full-page view
+        if (tasksPageWindow == null) tasksPageWindow = new TasksPage(calendar);
+        tasksPageWindow.refresh();
+        tasksPageWindow.setVisible(true);
     }
 
     // Remove a task or event by name
@@ -380,6 +369,8 @@ public class TaskGUI extends JFrame {
         }
         
         removeDialog.setVisible(true);
+        // Refresh lists and large pages after removal
+        showAllItems();
     }
 
     // Create a month-view calendar panel
@@ -440,11 +431,12 @@ public class TaskGUI extends JFrame {
             datePanel.setOpaque(true);
             
                     JLabel dayNameLabel = new JLabel(dayNames[i], SwingConstants.CENTER);
-                    dayNameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+                    dayNameLabel.setFont(new Font("Arial", Font.BOLD, 16));
             dayNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             
             JLabel dateLabel = new JLabel(String.valueOf(currentDate.getDayOfMonth()), SwingConstants.CENTER);
-            dateLabel.setFont(new Font("Arial", Font.PLAIN, 8));
+            // Make the date number larger for better readability
+            dateLabel.setFont(new Font("Arial", Font.BOLD, 16));
             dateLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             
             // Highlight today
@@ -473,6 +465,7 @@ public class TaskGUI extends JFrame {
             // Display tasks
             if (!tasks.isEmpty()) {
                 for (Task t : tasks) {
+                    final Task taskRef = t;
                     String name = t.getTaskName();
                     if (name.length() > 12) {
                         name = name.substring(0, 10) + "...";
@@ -481,6 +474,14 @@ public class TaskGUI extends JFrame {
                     taskLabel.setFont(new Font("Arial", Font.PLAIN, 18));
                     taskLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     taskLabel.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 1));
+                    taskLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                    taskLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseClicked(java.awt.event.MouseEvent e) {
+                            DetailPage dp = new DetailPage(taskRef);
+                            dp.setVisible(true);
+                        }
+                    });
                     contentPanel.add(taskLabel);
                 }
             }
@@ -491,6 +492,7 @@ public class TaskGUI extends JFrame {
                     contentPanel.add(Box.createVerticalStrut(1));
                 }
                 for (Event e : events) {
+                    final Event eventRef = e;
                     String name = e.getEventName();
                     if (name.length() > 12) {
                         name = name.substring(0, 10) + "...";
@@ -500,6 +502,14 @@ public class TaskGUI extends JFrame {
                     eventLabel.setFont(new Font("Arial", Font.PLAIN, 18));
                     eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     eventLabel.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 1));
+                    eventLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                    eventLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseClicked(java.awt.event.MouseEvent e) {
+                            DetailPage dp = new DetailPage(eventRef);
+                            dp.setVisible(true);
+                        }
+                    });
                     contentPanel.add(eventLabel);
                 }
             }
@@ -539,11 +549,12 @@ public class TaskGUI extends JFrame {
             datePanel.setOpaque(true);
             
                     JLabel dayNameLabel = new JLabel(dayNames[i], SwingConstants.CENTER);
-                    dayNameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+                    dayNameLabel.setFont(new Font("Arial", Font.BOLD, 16));
             dayNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             
             JLabel dateLabel = new JLabel(String.valueOf(currentDate.getDayOfMonth()), SwingConstants.CENTER);
-            dateLabel.setFont(new Font("Arial", Font.PLAIN, 8));
+            // Make the date number larger for better readability
+            dateLabel.setFont(new Font("Arial", Font.BOLD, 16));
             dateLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             
             // Highlight today
@@ -572,6 +583,7 @@ public class TaskGUI extends JFrame {
             // Display tasks
             if (!tasks.isEmpty()) {
                 for (Task t : tasks) {
+                    final Task taskRef = t;
                     String name = t.getTaskName();
                     if (name.length() > 12) {
                         name = name.substring(0, 10) + "...";
@@ -580,6 +592,14 @@ public class TaskGUI extends JFrame {
                     taskLabel.setFont(new Font("Arial", Font.PLAIN, 18));
                     taskLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     taskLabel.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 1));
+                    taskLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                    taskLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseClicked(java.awt.event.MouseEvent e) {
+                            DetailPage dp = new DetailPage(taskRef);
+                            dp.setVisible(true);
+                        }
+                    });
                     contentPanel.add(taskLabel);
                 }
             }
@@ -590,6 +610,7 @@ public class TaskGUI extends JFrame {
                     contentPanel.add(Box.createVerticalStrut(1));
                 }
                 for (Event e : events) {
+                    final Event eventRef = e;
                     String name = e.getEventName();
                     if (name.length() > 12) {
                         name = name.substring(0, 10) + "...";
@@ -599,6 +620,14 @@ public class TaskGUI extends JFrame {
                     eventLabel.setFont(new Font("Arial", Font.PLAIN, 12));
                     eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     eventLabel.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 1));
+                    eventLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                    eventLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseClicked(java.awt.event.MouseEvent e) {
+                            DetailPage dp = new DetailPage(eventRef);
+                            dp.setVisible(true);
+                        }
+                    });
                     contentPanel.add(eventLabel);
                 }
             }
@@ -629,23 +658,20 @@ public class TaskGUI extends JFrame {
                 sb.append("- ").append(t.getTaskName()).append("\n");
             }
         }
-        taskListArea.setText(sb.toString());
+        // Update the full-size tasks area and open the Tasks page
+        if (largeTaskArea != null) largeTaskArea.setText(sb.toString());
+        if (tasksPageWindow == null) tasksPageWindow = new TasksPage(calendar);
+        tasksPageWindow.refresh();
+        tasksPageWindow.setVisible(true);
     }
 
     // Display all events
     // Display all events
     private void showAllEvents() {
-        eventListArea.setText("");
-        List<Event> events = calendar.getEventsList();
-        if (events.isEmpty()) {
-            eventListArea.setText("No events added yet.");
-        } else {
-            StringBuilder sb = new StringBuilder();
-            for (Event event : events) {
-                sb.append("- ").append(event).append("\n");
-            }
-            eventListArea.setText(sb.toString());
-        }
+        // Open and refresh the dedicated Events full-page view
+        if (eventsPageWindow == null) eventsPageWindow = new EventsPage(calendar);
+        eventsPageWindow.refresh();
+        eventsPageWindow.setVisible(true);
     }
 
 

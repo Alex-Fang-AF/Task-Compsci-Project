@@ -117,7 +117,8 @@ public class DatePickerDialog extends JDialog {
         for (int day = 1; day <= daysInMonth; day++) {
             LocalDate date = currentMonth.atDay(day);
             JButton dayBtn = new JButton(String.valueOf(day));
-            dayBtn.setFont(new Font("Arial", Font.PLAIN, 11));
+            // Make day numbers more visible by increasing font size
+            dayBtn.setFont(new Font("Arial", Font.BOLD, 14));
             dayBtn.setFocusPainted(false);
             dayBtn.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
 
@@ -125,7 +126,8 @@ public class DatePickerDialog extends JDialog {
             if (date.equals(today)) {
                 dayBtn.setBackground(new Color(100, 200, 255));
                 dayBtn.setForeground(Color.WHITE);
-                dayBtn.setFont(new Font("Arial", Font.BOLD, 11));
+                // Keep the today style but still use the larger font size
+                dayBtn.setFont(new Font("Arial", Font.BOLD, 14));
             } else {
                 dayBtn.setBackground(Color.WHITE);
                 dayBtn.setForeground(Color.BLACK);

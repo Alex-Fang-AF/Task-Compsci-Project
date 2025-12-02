@@ -71,41 +71,77 @@ public class CalendarGUI extends JFrame {
             int dayNumber = i - startIndex + 1;
             if (dayNumber >= 1 && dayNumber <= daysInMonth) {
                 LocalDate d = currentYearMonth.atDay(dayNumber);
-                StringBuilder html = new StringBuilder("<html><div style='padding:4px;'>");
-                html.append("<div style='font-weight:bold;text-align:left;'>").append(dayNumber).append("</div>");
 
+                // Build a vertical panel so each task/event can be its own label and clickable
+                JPanel dayContent = new JPanel();
+                dayContent.setLayout(new BoxLayout(dayContent, BoxLayout.Y_AXIS));
+                dayContent.setOpaque(true);
+                dayContent.setBackground(Color.WHITE);
+                dayContent.setBorder(BorderFactory.createEmptyBorder(4,4,4,4));
+
+                // Day number label
+                JLabel dayNumLabel = new JLabel(String.valueOf(dayNumber));
+                dayNumLabel.setFont(new Font("Arial", Font.BOLD, 14));
+                dayNumLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                dayContent.add(dayNumLabel);
+
+                // Tasks
                 List<Task> tasks = calendar.getTasksOn(d);
                 int shown = 0;
                 for (Task t : tasks) {
                     if (shown >= 3) break; // show up to 3 task names
                     String name = t.getTaskName();
-                    name = name.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
-                    html.append("<div style='font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>").append(name).append("</div>");
+                    String display = name.length() > 18 ? name.substring(0, 15) + "..." : name;
+                    final Task taskRef = t;
+                    JLabel taskLabel = new JLabel("- " + display);
+                    taskLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+                    taskLabel.setForeground(Color.BLACK);
+                    taskLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    taskLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                    taskLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseClicked(java.awt.event.MouseEvent e) {
+                            DetailPage dp = new DetailPage(taskRef);
+                            dp.setVisible(true);
+                        }
+                    });
+                    dayContent.add(taskLabel);
                     shown++;
                 }
                 if (tasks.size() > shown) {
-                    html.append("<div style='font-size:10px;color:gray;'>+").append(tasks.size() - shown).append(" more</div>");
+                    JLabel more = new JLabel("+" + (tasks.size() - shown) + " more");
+                    more.setFont(new Font("Arial", Font.PLAIN, 10));
+                    more.setForeground(Color.GRAY);
+                    more.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    dayContent.add(more);
                 }
-                
-                // Add events after tasks
+
+                // Events
                 List<Event> events = calendar.getEventsOn(d);
-                for (Event e : events) {
-                    String name = e.getEventName();
-                    name = name.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
-                    html.append("<div style='font-size:9px;color:purple;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>◆ ").append(name).append("</div>");
+                for (Event ev : events) {
+                    String name = ev.getEventName();
+                    String display = name.length() > 18 ? name.substring(0, 15) + "..." : name;
+                    final Event eventRef = ev;
+                    JLabel eventLabel = new JLabel("◆ " + display);
+                    eventLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+                    eventLabel.setForeground(new Color(128,0,128));
+                    eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    eventLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                    eventLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseClicked(java.awt.event.MouseEvent e) {
+                            DetailPage dp = new DetailPage(eventRef);
+                            dp.setVisible(true);
+                        }
+                    });
+                    dayContent.add(eventLabel);
                 }
-                
-                html.append("</div></html>");
 
-                JLabel content = new JLabel(html.toString());
-                content.setOpaque(true);
-                content.setBackground(Color.WHITE);
-                cell.add(content, BorderLayout.CENTER);
-
+                cell.add(dayContent, BorderLayout.CENTER);
                 // Highlight today
                 if (d.equals(LocalDate.now())) {
                     cell.setBackground(new Color(220, 240, 255));
-                    content.setBackground(new Color(220, 240, 255));
+                    dayContent.setBackground(new Color(220, 240, 255));
                 }
             } else {
                 cell.setBackground(Color.WHITE);

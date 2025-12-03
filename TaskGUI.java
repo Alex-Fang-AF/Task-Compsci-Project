@@ -33,7 +33,6 @@ public class TaskGUI extends JFrame {
     private JPanel calendarPanel;
     private JLabel weekLabel;
     private LocalDate currentWeekStart;
-    private LocalDate selectedDate;
 
     // Constructor
     public TaskGUI() {
@@ -54,15 +53,35 @@ public class TaskGUI extends JFrame {
         setSize(900, 700);
         setLocationRelativeTo(null);
         setResizable(true);
-        setBackground(new Color(245, 250, 255));
+        setBackground(ThemeManager.getBackgroundColor());
     }
 
     // Create and organize all panels
     private void createPanels() {
+        // Top panel with theme toggle button on the left
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(ThemeManager.getBackgroundColor());
+        topPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+
+        // Create circular theme toggle button
+        JButton themeToggleButton = createCircularButton("T", 40);
+        themeToggleButton.addActionListener(e -> {
+            ThemeManager.toggleTheme();
+            themeToggleButton.setText(ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK ? "L" : "T");
+            applyTheme();
+        });
+        styleButton(themeToggleButton, new Color(100, 100, 100));
+
+        JPanel leftPanel = new JPanel();
+        leftPanel.setBackground(ThemeManager.getBackgroundColor());
+        leftPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        leftPanel.add(themeToggleButton);
+        topPanel.add(leftPanel, BorderLayout.WEST);
+
         // Main panel with border layout
         mainPanel = new JPanel(new BorderLayout(12, 12));
         mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        mainPanel.setBackground(new Color(245, 250, 255));
+        mainPanel.setBackground(ThemeManager.getBackgroundColor());
 
         // Button panel for actions
         createButtonPanel();
@@ -75,6 +94,7 @@ public class TaskGUI extends JFrame {
         // Main center content area - uses CardLayout to show calendar or large pages
         mainContentPanel = new JPanel(new java.awt.CardLayout());
         calendarCard = new JPanel(new BorderLayout());
+        calendarCard.setBackground(ThemeManager.getBackgroundColor());
         calendarCard.add(calendarPanel, BorderLayout.CENTER);
         // Large task and event cards
         tasksCard = new JPanel(new BorderLayout());
@@ -96,6 +116,7 @@ public class TaskGUI extends JFrame {
         mainContentPanel.add(eventsCard, "EVENTS");
 
         // Add sections to main panel
+        add(topPanel, BorderLayout.NORTH);
         mainPanel.add(buttonPanel, BorderLayout.NORTH);
         mainPanel.add(mainContentPanel, BorderLayout.CENTER);
 
@@ -105,8 +126,8 @@ public class TaskGUI extends JFrame {
 
     // Create button panel for actions
     private void createButtonPanel() {
-        buttonPanel = new JPanel(new GridLayout(2, 3, 15, 12));
-        buttonPanel.setBackground(new Color(245, 250, 255));
+        buttonPanel = new JPanel(new GridLayout(2, 4, 15, 12));
+        buttonPanel.setBackground(ThemeManager.getBackgroundColor());
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Creation button
@@ -209,11 +230,39 @@ public class TaskGUI extends JFrame {
         });
     }
 
-    // Create display panel for tasks and events
-    private void createDisplayPanel() {
-        // Right-side small in-panel display has been removed — nothing to set up here now.
+    // Create a circular button
+    private JButton createCircularButton(String text, int diameter) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                if (getModel().isArmed()) {
+                    g.setColor(getBackground().darker());
+                } else {
+                    g.setColor(getBackground());
+                }
+                g.fillOval(0, 0, getSize().width - 1, getSize().height - 1);
+                super.paintComponent(g);
+            }
+
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(diameter, diameter);
+            }
+        };
+        button.setPreferredSize(new Dimension(diameter, diameter));
+        button.setMaximumSize(new Dimension(diameter, diameter));
+        button.setMinimumSize(new Dimension(diameter, diameter));
+        button.setFocusPainted(false);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setForeground(Color.WHITE);
+        button.setBorderPainted(false);
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
+        button.setBackground(new Color(100, 100, 100));
+        return button;
     }
 
+        
     // Display all tasks and events
     private void showAllItems() {
         showAllTasks();
@@ -645,26 +694,7 @@ public class TaskGUI extends JFrame {
         grid.repaint();
     }
 
-    // Show tasks for a specific date in the task list area
-    private void showTasksForDate(LocalDate date) {
-        List<Task> tasks = calendar.getTasksOn(date);
-        StringBuilder sb = new StringBuilder();
-        sb.append("Tasks for ").append(date).append(":\n");
-        if (tasks.isEmpty()) {
-            sb.append("No tasks for this date.");
-        } else {
-                for (Task t : tasks) {
-                sb.append("- ").append(t.getTaskName()).append("\n");
-            }
-        }
-        // Update the full-size tasks area and open the Tasks page
-        if (largeTaskArea != null) largeTaskArea.setText(sb.toString());
-        if (tasksPageWindow == null) tasksPageWindow = new TasksPage(calendar);
-        tasksPageWindow.refresh();
-        tasksPageWindow.setVisible(true);
-    }
 
-    // Display all events
     // Display all events
     private void showAllEvents() {
         // Open and refresh the dedicated Events full-page view
@@ -673,6 +703,30 @@ public class TaskGUI extends JFrame {
         eventsPageWindow.setVisible(true);
     }
 
+    // Apply theme colors to all components recursively
+    private void applyTheme() {
+        applyThemeToComponent(this);
+        mainPanel.setBackground(ThemeManager.getBackgroundColor());
+        buttonPanel.setBackground(ThemeManager.getBackgroundColor());
+        refreshCalendar();
+        repaint();
+    }
+
+    // Recursively apply theme to component and children
+    private void applyThemeToComponent(Container container) {
+        for (Component comp : container.getComponents()) {
+            if (comp instanceof JPanel) {
+                comp.setBackground(ThemeManager.getBackgroundColor());
+                applyThemeToComponent((Container) comp);
+            } else if (comp instanceof JTextArea) {
+                comp.setBackground(ThemeManager.getPanelBackground());
+                comp.setForeground(ThemeManager.getTextColor());
+                applyThemeToComponent((Container) comp);
+            } else if (comp instanceof Container) {
+                applyThemeToComponent((Container) comp);
+            }
+        }
+    }
 
     // Main method
     public static void main(String[] args) {

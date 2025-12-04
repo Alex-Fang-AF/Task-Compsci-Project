@@ -56,7 +56,7 @@ The GUI will open automatically.
 4. Click **"Remove"**
 
 ### Dark/Light Mode
-Click the circular **"T"** button in the top-left corner to toggle between light and dark themes.
+Click the circular **"Dark/Light"** button in the top-left corner to toggle between light and dark themes.
 
 ## Files
 
@@ -72,6 +72,7 @@ Click the circular **"T"** button in the top-left corner to toggle between light
 - `CalendarGUI.java` — Detailed month view
 - `DetailPage.java` — Task/event detail popup
 - `DatePickerDialog.java` — Calendar picker for date selection
+- `SoundManager.java` — Origin for creating sound effects on program
 - Other supporting classes
 
 ## Requirements
@@ -85,3 +86,5 @@ Click the circular **"T"** button in the top-left corner to toggle between light
 - Events can span multiple consecutive days
 - Dates use `dd/MM/yyyy` format (e.g., 25/12/2025)
 - All data is stored in memory (no persistence between sessions)
+-Sounds are played after each successful creation of tasks
+

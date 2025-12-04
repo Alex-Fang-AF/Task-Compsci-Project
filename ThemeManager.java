@@ -22,7 +22,7 @@ public class ThemeManager {
         public static final Color BUTTON_HOVER = new Color(220, 220, 220);
     }
     
-    // Dark mode colors
+    // Setting Dark mode colors
     public static class DarkColors {
         public static final Color BACKGROUND = new Color(30, 30, 35);
         public static final Color PANEL_BG = new Color(45, 45, 50);

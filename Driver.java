@@ -1,6 +1,6 @@
 public class Driver {
     public static void main(String[] args) {
-        // Increase default UI font sizes for better readability across the app
+        // Setting UI font size
         javax.swing.SwingUtilities.invokeLater(() -> {
             java.awt.Font uiFont = new java.awt.Font("Merlin", java.awt.Font.PLAIN, 16);
             javax.swing.UIManager.put("Label.font", uiFont);
@@ -17,4 +17,3 @@ public class Driver {
         });
     }
 }
-//yes

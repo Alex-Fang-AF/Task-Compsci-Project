@@ -14,11 +14,4 @@ public class TaskManager {
 	public List<Task> getTasks() {
 		return calendar.getTasksList();
 	}
-
-	// Simple CLI helper for manual testing
-	public static void main(String[] args) {
-		TaskManager manager = new TaskManager();
-		System.out.println("TaskManager helper - use the GUI (Driver) to interact with tasks.");
-		manager.calendar.displayCurrentDate();
-	}
 }

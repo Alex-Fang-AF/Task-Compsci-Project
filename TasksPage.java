@@ -27,11 +27,10 @@ public class TasksPage extends JFrame {
         headerPanel.add(title, BorderLayout.CENTER);
         add(headerPanel, BorderLayout.NORTH);
 
-        // Main content panel with subtle background
         mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 
-        // List panel will contain custom ellipse-shaped task components
+        // List panel will contain bubbles for each task
         listPanel = new JPanel();
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
         listPanel.setOpaque(false);
@@ -41,7 +40,6 @@ public class TasksPage extends JFrame {
         scroll.getViewport().setBackground(new Color(250,250,252));
         mainPanel.add(scroll, BorderLayout.CENTER);
 
-        // Bottom action bar
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         bottom.setBackground(new Color(245, 250, 255));
         JButton refresh = new JButton("Refresh");
@@ -57,7 +55,6 @@ public class TasksPage extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
 
         refresh();
-        // Apply current theme colors and register listener
         applyTheme();
         ThemeManager.addListener(new ThemeManager.ThemeChangeListener() {
             public void onThemeChanged(ThemeManager.Theme newTheme) {
@@ -66,7 +63,7 @@ public class TasksPage extends JFrame {
         });
     }
 
-    // Apply current theme to this window
+    // Apply current theme to these windows including header and main
     public void applyTheme() {
         headerPanel.setBackground(ThemeManager.getHeaderBackground());
         headerPanel.setForeground(ThemeManager.getTextColor());
@@ -89,7 +86,7 @@ public class TasksPage extends JFrame {
             return;
         }
 
-        // Palette of four soft colors; choose randomly but ensure adjacent bubbles differ
+        // Color source of four soft colors; choose randomly but ensure adjacent bubbles differ
         Color[] colors = new Color[] {
             new Color(200,230,255),
             new Color(230,245,220),
@@ -102,7 +99,7 @@ public class TasksPage extends JFrame {
         for (Task t : tasks) {
             int pick = rnd.nextInt(colors.length);
             if (pick == prev) {
-                // choose a different adjacent color deterministically if collision
+                // choose a different adjacent colorif two are the same
                 pick = (pick + 1) % colors.length;
             }
             Color bg = colors[pick];
@@ -169,7 +166,7 @@ public class TasksPage extends JFrame {
                 g2.setStroke(new BasicStroke(1f));
                 g2.drawRoundRect(6, 3, w - 12, h, h, h);
 
-                // text
+                // write in text
                 g2.setColor(Color.DARK_GRAY);
                 g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 int textX = 20;

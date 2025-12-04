@@ -47,6 +47,13 @@ public class DetailPage extends JFrame {
         main.add(bottom, BorderLayout.SOUTH);
 
         add(main);
+        // Apply current theme and listen for changes
+        applyTheme();
+        ThemeManager.addListener(new ThemeManager.ThemeChangeListener() {
+            public void onThemeChanged(ThemeManager.Theme newTheme) {
+                applyTheme();
+            }
+        });
     }
 
     public DetailPage(Event event) {
@@ -92,5 +99,33 @@ public class DetailPage extends JFrame {
         main.add(bottom, BorderLayout.SOUTH);
 
         add(main);
+        // Apply theme and register listener
+        applyTheme();
+        ThemeManager.addListener(new ThemeManager.ThemeChangeListener() {
+            public void onThemeChanged(ThemeManager.Theme newTheme) {
+                applyTheme();
+            }
+        });
+    }
+
+    private void applyTheme() {
+        Color bg = ThemeManager.getBackgroundColor();
+        Color panelBg = ThemeManager.getPanelBackground();
+        Color text = ThemeManager.getTextColor();
+        Container c = getContentPane();
+        c.setBackground(bg);
+        // walk components and apply simple colors
+        for (Component comp : c.getComponents()) {
+            if (comp instanceof JPanel) {
+                comp.setBackground(panelBg);
+                for (Component child : ((JPanel) comp).getComponents()) {
+                    child.setForeground(text);
+                    if (child instanceof JScrollPane) {
+                        ((JScrollPane) child).getViewport().setBackground(panelBg);
+                    }
+                }
+            }
+        }
+        repaint();
     }
 }

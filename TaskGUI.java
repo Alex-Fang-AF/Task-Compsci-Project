@@ -64,11 +64,24 @@ public class TaskGUI extends JFrame {
         topPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
         // Create circular theme toggle button
-        JButton themeToggleButton = createCircularButton("T", 40);
-        themeToggleButton.addActionListener(e -> {
-            ThemeManager.toggleTheme();
-            themeToggleButton.setText(ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK ? "L" : "T");
-            applyTheme();
+        // Button text should show the mode it will switch to.
+        String btnText = ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK ? "Light Mode" : "Dark Mode";
+        JButton themeToggleButton = createCircularButton(btnText, 100);
+        // When clicked, toggle the theme. A listener below will update UI everywhere.
+        themeToggleButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                ThemeManager.toggleTheme();
+            }
+        });
+        // Register a listener so when theme changes we update text and apply theme across windows
+        ThemeManager.addListener(new ThemeManager.ThemeChangeListener() {
+            public void onThemeChanged(ThemeManager.Theme newTheme) {
+                themeToggleButton.setText(newTheme == ThemeManager.Theme.DARK ? "Light Mode" : "Dark Mode");
+                applyTheme();
+                if (tasksPageWindow != null) tasksPageWindow.applyTheme();
+                if (eventsPageWindow != null) eventsPageWindow.applyTheme();
+                if (calendarWindow != null) calendarWindow.applyTheme();
+            }
         });
         styleButton(themeToggleButton, new Color(100, 100, 100));
 

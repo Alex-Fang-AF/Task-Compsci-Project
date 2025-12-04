@@ -7,6 +7,8 @@ public class EventsPage extends JFrame {
     private final MyCalendar calendar;
     private JPanel listPanel;
     private JScrollPane scroll;
+    private JPanel headerPanel;
+    private JPanel mainPanel;
 
     public EventsPage(MyCalendar calendar) {
         this.calendar = calendar;
@@ -16,18 +18,15 @@ public class EventsPage extends JFrame {
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setLayout(new BorderLayout(0, 0));
 
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(120, 80, 200));
-        header.setBorder(BorderFactory.createEmptyBorder(8,12,8,12));
+        headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(8,12,8,12));
         JLabel title = new JLabel("All Events", SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        title.setForeground(Color.WHITE);
-        header.add(title, BorderLayout.CENTER);
-        add(header, BorderLayout.NORTH);
+        headerPanel.add(title, BorderLayout.CENTER);
+        add(headerPanel, BorderLayout.NORTH);
 
-        JPanel main = new JPanel(new BorderLayout());
-        main.setBackground(new Color(252, 250, 255));
-        main.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+        mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 
         listPanel = new JPanel();
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
@@ -35,11 +34,11 @@ public class EventsPage extends JFrame {
 
         scroll = new JScrollPane(listPanel);
         scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.getViewport().setBackground(new Color(255,255,254));
-        main.add(scroll, BorderLayout.CENTER);
+        scroll.getViewport().setBackground(ThemeManager.getPanelBackground());
+        mainPanel.add(scroll, BorderLayout.CENTER);
 
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        bottom.setBackground(new Color(252, 250, 255));
+        bottom.setBackground(ThemeManager.getBackgroundColor());
         JButton refresh = new JButton("Refresh");
         styleActionButton(refresh, new Color(33,150,243));
         refresh.addActionListener(e -> refresh());
@@ -48,11 +47,25 @@ public class EventsPage extends JFrame {
         close.addActionListener(e -> setVisible(false));
         bottom.add(refresh);
         bottom.add(close);
-        main.add(bottom, BorderLayout.SOUTH);
+        mainPanel.add(bottom, BorderLayout.SOUTH);
 
-        add(main, BorderLayout.CENTER);
+        add(mainPanel, BorderLayout.CENTER);
 
         refresh();
+        applyTheme();
+        ThemeManager.addListener(new ThemeManager.ThemeChangeListener() {
+            public void onThemeChanged(ThemeManager.Theme newTheme) {
+                applyTheme();
+            }
+        });
+    }
+
+    public void applyTheme() {
+        headerPanel.setBackground(ThemeManager.getHeaderBackground());
+        mainPanel.setBackground(ThemeManager.getBackgroundColor());
+        listPanel.setBackground(ThemeManager.getPanelBackground());
+        if (scroll != null) scroll.getViewport().setBackground(ThemeManager.getPanelBackground());
+        repaint();
     }
 
     public void refresh() {

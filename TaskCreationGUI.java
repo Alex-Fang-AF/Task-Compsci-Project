@@ -61,6 +61,17 @@ public class TaskCreationGUI extends JDialog {
         super(parent, "Create Task or Event", true);
         this.calendar = calendar;
         initializeDialog();
+        // Update theme when it changes
+        ThemeManager.addListener(new ThemeManager.ThemeChangeListener() {
+            public void onThemeChanged(ThemeManager.Theme newTheme) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        TaskCreationGUI.this.getContentPane().setBackground(ThemeManager.getBackgroundColor());
+                        TaskCreationGUI.this.repaint();
+                    }
+                });
+            }
+        });
     }
 
     private void initializeDialog() {

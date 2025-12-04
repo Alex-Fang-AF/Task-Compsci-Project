@@ -1,4 +1,4 @@
-import javax.swing.*;
+                  import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -15,6 +15,12 @@ public class CalendarGUI extends JFrame {
         this.currentYearMonth = YearMonth.from(calendar.getCurrentDate());
         initializeFrame();
         buildUI();
+        // Update theme when it changes
+        ThemeManager.addListener(new ThemeManager.ThemeChangeListener() {
+            public void onThemeChanged(ThemeManager.Theme newTheme) {
+                applyTheme();
+            }
+        });
         SwingUtilities.invokeLater(this::refreshCalendar);
     }
 
@@ -62,7 +68,7 @@ public class CalendarGUI extends JFrame {
 
         monthLabel.setText(currentYearMonth.getMonth().toString() + " " + currentYearMonth.getYear());
         monthLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        monthLabel.setForeground(new Color(50, 100, 150));
+        monthLabel.setForeground(ThemeManager.getTextColor());
         LocalDate firstOfMonth = currentYearMonth.atDay(1);
         int startIndex = firstOfMonth.getDayOfWeek().getValue() % 7; // Sunday -> 0
         int daysInMonth = currentYearMonth.lengthOfMonth();
@@ -153,6 +159,14 @@ public class CalendarGUI extends JFrame {
 
         grid.revalidate();
         grid.repaint();
+    }
+
+    // Apply theme to this window
+    public void applyTheme() {
+        getContentPane().setBackground(ThemeManager.getBackgroundColor());
+        if (monthLabel != null) monthLabel.setForeground(ThemeManager.getTextColor());
+        refreshCalendar();
+        repaint();
     }
 }
 

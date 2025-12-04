@@ -7,6 +7,9 @@ public class TasksPage extends JFrame {
     private final MyCalendar calendar;
     private JPanel listPanel;
     private JScrollPane scroll;
+    // store references for theme updates
+    private JPanel headerPanel;
+    private JPanel mainPanel;
 
     public TasksPage(MyCalendar calendar) {
         this.calendar = calendar;
@@ -16,20 +19,17 @@ public class TasksPage extends JFrame {
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setLayout(new BorderLayout(0, 0));
 
-        // Header with gradient-like panel
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(60, 130, 200));
-        header.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        // Header with simple background (store for theme updates)
+        headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
         JLabel title = new JLabel("All Tasks", SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        title.setForeground(Color.WHITE);
-        header.add(title, BorderLayout.CENTER);
-        add(header, BorderLayout.NORTH);
+        headerPanel.add(title, BorderLayout.CENTER);
+        add(headerPanel, BorderLayout.NORTH);
 
         // Main content panel with subtle background
-        JPanel main = new JPanel(new BorderLayout());
-        main.setBackground(new Color(245, 250, 255));
-        main.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+        mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 
         // List panel will contain custom ellipse-shaped task components
         listPanel = new JPanel();
@@ -39,7 +39,7 @@ public class TasksPage extends JFrame {
         scroll = new JScrollPane(listPanel);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(new Color(250,250,252));
-        main.add(scroll, BorderLayout.CENTER);
+        mainPanel.add(scroll, BorderLayout.CENTER);
 
         // Bottom action bar
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
@@ -52,11 +52,28 @@ public class TasksPage extends JFrame {
         close.addActionListener(e -> setVisible(false));
         bottom.add(refresh);
         bottom.add(close);
-        main.add(bottom, BorderLayout.SOUTH);
+        mainPanel.add(bottom, BorderLayout.SOUTH);
 
-        add(main, BorderLayout.CENTER);
+        add(mainPanel, BorderLayout.CENTER);
 
         refresh();
+        // Apply current theme colors and register listener
+        applyTheme();
+        ThemeManager.addListener(new ThemeManager.ThemeChangeListener() {
+            public void onThemeChanged(ThemeManager.Theme newTheme) {
+                applyTheme();
+            }
+        });
+    }
+
+    // Apply current theme to this window
+    public void applyTheme() {
+        headerPanel.setBackground(ThemeManager.getHeaderBackground());
+        headerPanel.setForeground(ThemeManager.getTextColor());
+        mainPanel.setBackground(ThemeManager.getBackgroundColor());
+        listPanel.setBackground(ThemeManager.getPanelBackground());
+        if (scroll != null) scroll.getViewport().setBackground(ThemeManager.getPanelBackground());
+        repaint();
     }
 
     public void refresh() {

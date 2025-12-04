@@ -64,7 +64,7 @@ public class TaskGUI extends JFrame {
         topPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
         // Create circular theme toggle button
-        // Button text should show the mode it will switch to.
+        // Button text should show the mode it will switch to if dark show light, if light show dark button
         String btnText = ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK ? "Light Mode" : "Dark Mode";
         JButton themeToggleButton = createCircularButton(btnText, 100);
         // When clicked, toggle the theme. A listener below will update UI everywhere.
@@ -99,12 +99,9 @@ public class TaskGUI extends JFrame {
         // Button panel for actions
         createButtonPanel();
 
-        // Calendar panel for month view
+        // Create new Panel for calendar
         createCalendarPanel();
-
-        // Right-side small inline display removed; use full-page windows instead
-
-        // Main center content area - uses CardLayout to show calendar or large pages
+        // Main center content area
         mainContentPanel = new JPanel(new java.awt.CardLayout());
         calendarCard = new JPanel(new BorderLayout());
         calendarCard.setBackground(ThemeManager.getBackgroundColor());

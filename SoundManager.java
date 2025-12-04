@@ -2,23 +2,23 @@ import javax.sound.sampled.*;
 
 /**
  * Simple sound manager for playing beep/success sounds.
- * Uses Java's built-in audio capabilities (no external files needed).
+ * Access Building Blocks from Java Sound
  */
 public class SoundManager {
     
     // Play a simple beep/success sound
     public static void playSuccessSound() {
         try {
-            // Generate a simple success beep: 800Hz for 200ms
+            // Generate sound
             playTone(800, 200);
         } catch (Exception e) {
-            // Silently fail if audio is not available
+            // No sound played if failed/other scenarios
         }
     }
     
-    // Play a tone at a specific frequency for a duration
+    // Play Tone after creating a task
     private static void playTone(int frequency, int durationMs) throws Exception {
-        int sampleRate = 44100;
+        int sampleRate = 23000;
         byte[] buffer = new byte[sampleRate * durationMs / 1000];
         
         // Generate sine wave

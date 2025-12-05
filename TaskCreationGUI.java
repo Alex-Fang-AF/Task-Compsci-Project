@@ -16,6 +16,10 @@ public class TaskCreationGUI extends JDialog {
     private JTextField taskDueDateField;
     private JComboBox<String> taskPriorityCombo;
     private JTextArea taskDescriptionArea;
+    private JCheckBox alarmCheckBox;
+    private JComboBox<String> alarmRepeatCombo;
+    private JComboBox<Integer> hourCombo;
+    private JComboBox<Integer> minuteCombo;
     private JTextField eventNameField;
     private JTextField eventStartDateField;
     private JTextField eventEndDateField;
@@ -27,8 +31,7 @@ public class TaskCreationGUI extends JDialog {
     // Display formatter (used when showing dates in fields)
     private static final DateTimeFormatter DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         .withResolverStyle(ResolverStyle.STRICT);
-
-    // Parsers: try multiple common input formats to be more forgiving for users
+    // List of accepted date input formats
     private static final List<DateTimeFormatter> PARSE_FORMATTERS = new ArrayList<>();
     static {
         PARSE_FORMATTERS.add(DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT));
@@ -139,7 +142,6 @@ public class TaskCreationGUI extends JDialog {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Name field
         JLabel nameLabel = new JLabel("Task Name:");
         nameLabel.setFont(new Font("Arial", Font.BOLD, 11));
         gbc.gridx = 0;
@@ -232,6 +234,61 @@ public class TaskCreationGUI extends JDialog {
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.BOTH;
         panel.add(taskDescScroll, gbc);
+
+        // Alarm controls (optional)
+        JLabel alarmLabel = new JLabel("Alarm:");
+        alarmLabel.setFont(new Font("Arial", Font.BOLD, 11));
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        panel.add(alarmLabel, gbc);
+
+        JPanel alarmPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        alarmPanel.setBackground(ThemeManager.getPanelBackground());
+        alarmCheckBox = new JCheckBox("Set reminder alarm");
+        alarmCheckBox.setBackground(ThemeManager.getPanelBackground());
+        alarmCheckBox.setForeground(ThemeManager.getTextColor());
+        // Build repeat interval options from 0 minutes to 12 hours in 30-minute steps
+        java.util.List<String> repeatsList = new java.util.ArrayList<>();
+        repeatsList.add("0 minutes");
+        for (int mins = 30; mins <= 12 * 60; mins += 30) {
+            repeatsList.add(mins + " minutes");
+        }
+        String[] repeats = repeatsList.toArray(new String[repeatsList.size()]);
+        alarmRepeatCombo = new JComboBox<>(repeats);
+        alarmRepeatCombo.setSelectedIndex(1); // default to 30 minutes
+        alarmRepeatCombo.setBackground(ThemeManager.getPanelBackground());
+        alarmRepeatCombo.setForeground(ThemeManager.getTextColor());
+        alarmRepeatCombo.setFont(new Font("Arial", Font.PLAIN, 11));
+
+        // Hour/minute selectors for time-of-day alarm
+        Integer[] hours = new Integer[24];
+        for (int i = 0; i < 24; i++) hours[i] = i;
+        hourCombo = new JComboBox<>(hours);
+        hourCombo.setSelectedItem(java.time.LocalTime.now().getHour());
+        hourCombo.setBackground(ThemeManager.getPanelBackground());
+        hourCombo.setForeground(ThemeManager.getTextColor());
+
+        Integer[] mins = new Integer[60];
+        for (int i = 0; i < 60; i++) mins[i] = i;
+        minuteCombo = new JComboBox<>(mins);
+        minuteCombo.setSelectedItem(java.time.LocalTime.now().getMinute());
+        minuteCombo.setBackground(ThemeManager.getPanelBackground());
+        minuteCombo.setForeground(ThemeManager.getTextColor());
+
+        alarmPanel.add(alarmCheckBox);
+        alarmPanel.add(alarmRepeatCombo);
+        alarmPanel.add(new JLabel("Hour:"));
+        alarmPanel.add(hourCombo);
+        alarmPanel.add(new JLabel("Min:"));
+        alarmPanel.add(minuteCombo);
+
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(alarmPanel, gbc);
 
         return panel;
     }
@@ -439,6 +496,51 @@ public class TaskCreationGUI extends JDialog {
                 System.out.println("DEBUG: Creating task - Name: '" + name + "', Due Date: " + dueDate);
                 System.out.println("DEBUG: Task object - Name: '" + task.getTaskName() + "'");
                 calendar.addTask(task);
+                // If user selected an alarm, allow them to choose a re-notify interval (0..720 minutes) now
+                if (alarmCheckBox != null && alarmCheckBox.isSelected()) {
+                    // derive default from alarmRepeatCombo if possible
+                    int defaultMinutes = 30;
+                    try {
+                        if (alarmRepeatCombo != null && alarmRepeatCombo.getSelectedItem() != null) {
+                            String s = alarmRepeatCombo.getSelectedItem().toString();
+                            java.util.Scanner sc = new java.util.Scanner(s);
+                            if (sc.hasNextInt()) defaultMinutes = sc.nextInt();
+                            sc.close();
+                        }
+                    } catch (Throwable t) {
+                        // fallback to 30
+                        defaultMinutes = 30;
+                    }
+
+                    // build minute choices 0..720
+                    Integer[] minuteChoices = new Integer[721];
+                    for (int i = 0; i <= 720; i++) minuteChoices[i] = i;
+                    JComboBox<Integer> minuteSelector = new JComboBox<>(minuteChoices);
+                    minuteSelector.setSelectedItem(defaultMinutes);
+
+                    JPanel p = new JPanel(new BorderLayout(8,8));
+                    p.add(new JLabel("Choose re-notify interval (minutes). Select 0 to not schedule repeated reminders."), BorderLayout.NORTH);
+                    p.add(minuteSelector, BorderLayout.CENTER);
+
+                    int res = JOptionPane.showConfirmDialog(this, p, "Set re-notify interval", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                    if (res == JOptionPane.OK_OPTION) {
+                        Integer chosen = (Integer) minuteSelector.getSelectedItem();
+                        if (chosen == null) chosen = defaultMinutes;
+
+                        int hr = 9;
+                        int min = 0;
+                        if (hourCombo != null && minuteCombo != null) {
+                            Object hsel = hourCombo.getSelectedItem();
+                            Object msel = minuteCombo.getSelectedItem();
+                            if (hsel instanceof Integer) hr = (Integer) hsel;
+                            if (msel instanceof Integer) min = (Integer) msel;
+                        }
+                        java.time.LocalTime timeOfDay = java.time.LocalTime.of(hr, min);
+                        AlarmManager.scheduleAlarm(task, chosen, timeOfDay);
+                    } else {
+                        // user cancelled - do not schedule alarm
+                    }
+                }
                 System.out.println("DEBUG: Tasks in calendar after adding: " + calendar.getTasksList().size());
                 itemCreated = true;
                 JOptionPane.showMessageDialog(this, "Task created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);

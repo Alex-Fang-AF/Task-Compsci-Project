@@ -2,14 +2,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Random;
-
+//Helper to show events page in comparison to "TasksPage.java"
 public class EventsPage extends JFrame {
     private final MyCalendar calendar;
     private JPanel listPanel;
     private JScrollPane scroll;
     private JPanel headerPanel;
     private JPanel mainPanel;
-
+//Created with assistance from Copilot
     public EventsPage(MyCalendar calendar) {
         this.calendar = calendar;
         setTitle("Events - Full Page");

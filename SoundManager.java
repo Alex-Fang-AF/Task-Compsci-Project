@@ -4,6 +4,8 @@ import javax.sound.sampled.*;
  * Simple sound manager for playing beep/success sounds.
  * Access Building Blocks from Java Sound
  */
+//Reference to kovertopz @Github for construction
+
 public class SoundManager {
     
     // Play a simple beep/success sound

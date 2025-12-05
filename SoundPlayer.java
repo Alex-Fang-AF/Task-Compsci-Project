@@ -48,6 +48,28 @@ public class SoundPlayer {
         }).start();
     }
 
+    // Start a looping bell playback on a background daemon thread.
+    // Returns the Thread instance so callers can interrupt() it to stop looping.
+    public static Thread startBellLoop() {
+        Thread t = new Thread(() -> {
+            try {
+                while (!Thread.currentThread().isInterrupted()) {
+                    // play a short bell sequence synchronously
+                    playToneSync(880, 80);
+                    try { Thread.sleep(40); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); break; }
+                    playToneSync(660, 120);
+                    // pause between repeats
+                    try { Thread.sleep(800); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); break; }
+                }
+            } catch (Throwable t2) {
+                // silent fail
+            }
+        });
+        t.setDaemon(true);
+        t.start();
+        return t;
+    }
+
     // Play a short comedic tri-beep
     public static void playComedic() {
         new Thread(() -> {
@@ -63,7 +85,7 @@ public class SoundPlayer {
         }).start();
     }
 
-    // Helper to play tone synchronously on the current thread (used inside background threads)
+    // Helper to play tone
     private static void playToneSync(double freq, int durationMs) {
         try {
             float sampleRate = 44100f;
@@ -86,7 +108,7 @@ public class SoundPlayer {
                 line.stop();
             }
         } catch (Exception e) {
-            // ignore
+            // silent fail - sound is non-critical
         }
     }
 }

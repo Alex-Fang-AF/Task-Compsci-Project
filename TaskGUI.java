@@ -144,7 +144,7 @@ public class TaskGUI extends JFrame {
         JButton createButton = new JButton("Create Item");
 
         // Task buttons
-        addTaskButton = new JButton("Show All Tasks");
+        addTaskButton = new JButton("Show All Tasks/Events");
         showTasksButton = new JButton("Show Tasks");
         removeTaskButton = new JButton("Remove Item");
 
@@ -315,36 +315,60 @@ public class TaskGUI extends JFrame {
         
         JPanel dialogMainPanel = new JPanel(new BorderLayout(10, 10));
         dialogMainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        dialogMainPanel.setBackground(new Color(245, 250, 255));
+        dialogMainPanel.setBackground(ThemeManager.getBackgroundColor());
         
         // Type selection
         JPanel typePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        typePanel.setBackground(new Color(245, 250, 255));
+        typePanel.setBackground(ThemeManager.getPanelBackground());
         JLabel typeLabel = new JLabel("Select type:");
         typeLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        typeLabel.setForeground(ThemeManager.getTextColor());
         
         String[] types = {"Task", "Event"};
         JComboBox<String> typeCombo = new JComboBox<>(types);
-        typeCombo.setBackground(new Color(255, 255, 255));
+        typeCombo.setBackground(ThemeManager.getPanelBackground());
+        typeCombo.setForeground(ThemeManager.getTextColor());
         typeCombo.setFont(new Font("Arial", Font.PLAIN, 12));
+        // renderer to keep combo readable in dark mode
+        typeCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                c.setBackground(isSelected ? ThemeManager.getHeaderBackground() : ThemeManager.getPanelBackground());
+                c.setForeground(ThemeManager.getTextColor());
+                return c;
+            }
+        });
         
         typePanel.add(typeLabel);
         typePanel.add(typeCombo);
         
         // Item list
         JPanel listPanel = new JPanel(new BorderLayout(5, 5));
-        listPanel.setBackground(new Color(245, 250, 255));
+        listPanel.setBackground(ThemeManager.getPanelBackground());
         JLabel listLabel = new JLabel("Select item to remove:");
         listLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        listLabel.setForeground(ThemeManager.getTextColor());
         
         DefaultListModel<String> listModel = new DefaultListModel<>();
         JList<String> itemList = new JList<>(listModel);
         itemList.setFont(new Font("Arial", Font.PLAIN, 12));
-        itemList.setBackground(new Color(255, 255, 255));
-        itemList.setBorder(BorderFactory.createLineBorder(new Color(100, 150, 200), 1));
+        itemList.setBackground(ThemeManager.getPanelBackground());
+        itemList.setForeground(ThemeManager.getTextColor());
+        itemList.setBorder(BorderFactory.createLineBorder(ThemeManager.getBorderColor(), 1));
+        itemList.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                c.setBackground(isSelected ? ThemeManager.getHeaderBackground() : ThemeManager.getPanelBackground());
+                c.setForeground(ThemeManager.getTextColor());
+                return c;
+            }
+        });
         
         JScrollPane scrollPane = new JScrollPane(itemList);
-        scrollPane.getVerticalScrollBar().setBackground(new Color(200, 220, 240));
+        scrollPane.getViewport().setBackground(ThemeManager.getPanelBackground());
+        scrollPane.getVerticalScrollBar().setBackground(ThemeManager.getPanelBackground());
         scrollPane.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI());
         
         listPanel.add(listLabel, BorderLayout.NORTH);
@@ -366,21 +390,21 @@ public class TaskGUI extends JFrame {
         
         // Button panel
         JPanel dialogButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-        dialogButtonPanel.setBackground(new Color(245, 250, 255));
+        dialogButtonPanel.setBackground(ThemeManager.getPanelBackground());
         
         JButton removeBtn = new JButton("Remove");
         removeBtn.setFont(new Font("Arial", Font.BOLD, 12));
         removeBtn.setBackground(new Color(220, 80, 80));
         removeBtn.setForeground(Color.WHITE);
         removeBtn.setFocusPainted(false);
-        removeBtn.setBorder(BorderFactory.createLineBorder(new Color(150, 50, 50), 1));
+        removeBtn.setBorder(BorderFactory.createLineBorder(ThemeManager.getBorderColor(), 1));
         
         JButton cancelBtn = new JButton("Cancel");
         cancelBtn.setFont(new Font("Arial", Font.BOLD, 12));
         cancelBtn.setBackground(new Color(150, 150, 150));
         cancelBtn.setForeground(Color.WHITE);
         cancelBtn.setFocusPainted(false);
-        cancelBtn.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100), 1));
+        cancelBtn.setBorder(BorderFactory.createLineBorder(ThemeManager.getBorderColor(), 1));
         
         removeBtn.addActionListener(evt -> {
             if (itemList.getSelectedIndex() == -1) {
@@ -405,6 +429,8 @@ public class TaskGUI extends JFrame {
                 }
             }
             
+            // No sound: removed per user request
+
             JOptionPane.showMessageDialog(removeDialog, selectedItem + " removed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             showAllItems();
             refreshCalendar();
@@ -422,6 +448,43 @@ public class TaskGUI extends JFrame {
         dialogMainPanel.add(dialogButtonPanel, BorderLayout.SOUTH);
         
         removeDialog.add(dialogMainPanel);
+
+        // Apply initial theme to the dialog and register a listener to update dynamically
+        SwingUtilities.invokeLater(() -> {
+            removeDialog.getContentPane().setBackground(ThemeManager.getBackgroundColor());
+            typePanel.setBackground(ThemeManager.getPanelBackground());
+            listPanel.setBackground(ThemeManager.getPanelBackground());
+            listLabel.setForeground(ThemeManager.getTextColor());
+            itemList.setBackground(ThemeManager.getPanelBackground());
+            itemList.setForeground(ThemeManager.getTextColor());
+            dialogButtonPanel.setBackground(ThemeManager.getPanelBackground());
+        });
+
+        final ThemeManager.ThemeChangeListener _removeDialogThemeListener = new ThemeManager.ThemeChangeListener() {
+            public void onThemeChanged(ThemeManager.Theme newTheme) {
+                SwingUtilities.invokeLater(() -> {
+                    removeDialog.getContentPane().setBackground(ThemeManager.getBackgroundColor());
+                    typePanel.setBackground(ThemeManager.getPanelBackground());
+                    listPanel.setBackground(ThemeManager.getPanelBackground());
+                    listLabel.setForeground(ThemeManager.getTextColor());
+                    itemList.setBackground(ThemeManager.getPanelBackground());
+                    itemList.setForeground(ThemeManager.getTextColor());
+                    dialogButtonPanel.setBackground(ThemeManager.getPanelBackground());
+                    removeDialog.repaint();
+                });
+            }
+        };
+        ThemeManager.addListener(_removeDialogThemeListener);
+        removeDialog.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                ThemeManager.removeListener(_removeDialogThemeListener);
+            }
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                ThemeManager.removeListener(_removeDialogThemeListener);
+            }
+        });
         
         // Populate initial list with tasks
         for (Task task : calendar.getTasksList()) {
@@ -429,8 +492,6 @@ public class TaskGUI extends JFrame {
         }
         
         removeDialog.setVisible(true);
-        // Refresh lists and large pages after removal
-        showAllItems();
     }
 
     // Create a month-view calendar panel

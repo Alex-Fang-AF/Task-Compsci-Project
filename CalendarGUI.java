@@ -63,6 +63,7 @@ public class CalendarGUI extends JFrame {
         for (String dn : dayNames) {
             JLabel lbl = new JLabel(dn, SwingConstants.CENTER);
             lbl.setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
+            lbl.setForeground(ThemeManager.getTextColor());
             grid.add(lbl);
         }
 
@@ -84,13 +85,14 @@ public class CalendarGUI extends JFrame {
                 JPanel dayContent = new JPanel();
                 dayContent.setLayout(new BoxLayout(dayContent, BoxLayout.Y_AXIS));
                 dayContent.setOpaque(true);
-                dayContent.setBackground(Color.WHITE);
+                dayContent.setBackground(ThemeManager.getPanelBackground());
                 dayContent.setBorder(BorderFactory.createEmptyBorder(4,4,4,4));
 
                 // Day number label
                 JLabel dayNumLabel = new JLabel(String.valueOf(dayNumber));
                 dayNumLabel.setFont(new Font("Arial", Font.BOLD, 14));
                 dayNumLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                dayNumLabel.setForeground(ThemeManager.getTextColor());
                 dayContent.add(dayNumLabel);
 
                 // Tasks
@@ -103,7 +105,7 @@ public class CalendarGUI extends JFrame {
                     final Task taskRef = t;
                     JLabel taskLabel = new JLabel("- " + display);
                     taskLabel.setFont(new Font("Arial", Font.PLAIN, 11));
-                    taskLabel.setForeground(Color.BLACK);
+                    taskLabel.setForeground(ThemeManager.getTextColor());
                     taskLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     taskLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
                     taskLabel.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -119,7 +121,7 @@ public class CalendarGUI extends JFrame {
                 if (tasks.size() > shown) {
                     JLabel more = new JLabel("+" + (tasks.size() - shown) + " more");
                     more.setFont(new Font("Arial", Font.PLAIN, 10));
-                    more.setForeground(Color.GRAY);
+                    more.setForeground(ThemeManager.getTextColor());
                     more.setAlignmentX(Component.LEFT_ALIGNMENT);
                     dayContent.add(more);
                 }
@@ -132,7 +134,8 @@ public class CalendarGUI extends JFrame {
                     final Event eventRef = ev;
                     JLabel eventLabel = new JLabel("◆ " + display);
                     eventLabel.setFont(new Font("Arial", Font.PLAIN, 10));
-                    eventLabel.setForeground(new Color(128,0,128));
+                    // keep event marker color but ensure it is visible on dark backgrounds
+                    eventLabel.setForeground(new Color(180,100,200));
                     eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                     eventLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
                     eventLabel.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -148,12 +151,15 @@ public class CalendarGUI extends JFrame {
                 cell.add(dayContent, BorderLayout.CENTER);
                 // Highlight today
                 if (d.equals(LocalDate.now())) {
-                    cell.setBackground(new Color(220, 240, 255));
-                    dayContent.setBackground(new Color(220, 240, 255));
+                    cell.setBackground(ThemeManager.getHeaderBackground());
+                    dayContent.setBackground(ThemeManager.getHeaderBackground());
+                } else {
+                    cell.setBackground(ThemeManager.getPanelBackground());
                 }
             } else {
-                cell.setBackground(Color.WHITE);
+                cell.setBackground(ThemeManager.getPanelBackground());
             }
+            cell.setBorder(BorderFactory.createLineBorder(ThemeManager.getBorderColor()));
             grid.add(cell);
         }
 

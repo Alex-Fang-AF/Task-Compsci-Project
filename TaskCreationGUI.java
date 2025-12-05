@@ -66,8 +66,7 @@ public class TaskCreationGUI extends JDialog {
             public void onThemeChanged(ThemeManager.Theme newTheme) {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        TaskCreationGUI.this.getContentPane().setBackground(ThemeManager.getBackgroundColor());
-                        TaskCreationGUI.this.repaint();
+                        applyTheme();
                     }
                 });
             }
@@ -84,7 +83,7 @@ public class TaskCreationGUI extends JDialog {
         // Main panel
         JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
         mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        mainPanel.setBackground(new Color(245, 250, 255));
+        mainPanel.setBackground(ThemeManager.getBackgroundColor());
 
         // Title
         JLabel titleLabel = new JLabel("Create New Item");
@@ -95,7 +94,7 @@ public class TaskCreationGUI extends JDialog {
         // Input panel container with CardLayout
         cardLayout = new CardLayout();
         inputContainer = new JPanel(cardLayout);
-        inputContainer.setBackground(new Color(245, 250, 255));
+        inputContainer.setBackground(ThemeManager.getPanelBackground());
         
         taskPanel = createTaskPanel();
         eventPanel = createEventPanel();
@@ -104,7 +103,7 @@ public class TaskCreationGUI extends JDialog {
         inputContainer.add(eventPanel, "event");
         
         JPanel modePanel = new JPanel(new BorderLayout());
-        modePanel.setBackground(new Color(245, 250, 255));
+        modePanel.setBackground(ThemeManager.getPanelBackground());
         
         // Toggle button at top
         toggleModeButton = new JButton("Switch to Event Mode");
@@ -121,18 +120,20 @@ public class TaskCreationGUI extends JDialog {
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
+        // Apply theme right away so the dialog matches the program theme on open
+        SwingUtilities.invokeLater(() -> applyTheme());
     }
 
     private JPanel createTaskPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(245, 250, 255));
-        panel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
-            "Task Details",
-            0, 0,
-            new Font("Arial", Font.BOLD, 11),
-            new Color(50, 100, 150)
-        ));
+        panel.setBackground(ThemeManager.getPanelBackground());
+        javax.swing.border.TitledBorder tb = BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(ThemeManager.getBorderColor(), 2),
+            "Task Details"
+        );
+        tb.setTitleFont(new Font("Arial", Font.BOLD, 11));
+        tb.setTitleColor(ThemeManager.getTextColor());
+        panel.setBorder(tb);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -165,7 +166,7 @@ public class TaskCreationGUI extends JDialog {
         panel.add(dueDateLabel, gbc);
 
         JPanel dueDatePanel = new JPanel(new BorderLayout(5, 0));
-        dueDatePanel.setBackground(new Color(245, 250, 255));
+        dueDatePanel.setBackground(ThemeManager.getPanelBackground());
         
         taskDueDateField = new JTextField(15);
         taskDueDateField.setToolTipText("Accepted formats: dd/MM/yyyy, d/M/yyyy, MM/dd/yyyy, yyyy-MM-dd");
@@ -175,8 +176,8 @@ public class TaskCreationGUI extends JDialog {
         JButton taskDatePickerBtn = new JButton("Pick");
         taskDatePickerBtn.setFont(new Font("Arial", Font.PLAIN, 12));
         taskDatePickerBtn.setPreferredSize(new Dimension(35, 30));
-        taskDatePickerBtn.setBackground(new Color(100, 200, 255));
-        taskDatePickerBtn.setForeground(Color.WHITE);
+        taskDatePickerBtn.setBackground(ThemeManager.getHeaderBackground());
+        taskDatePickerBtn.setForeground(ThemeManager.getTextColor());
         taskDatePickerBtn.setFocusPainted(false);
         taskDatePickerBtn.addActionListener(e -> openTaskDatePicker());
         dueDatePanel.add(taskDatePickerBtn, BorderLayout.EAST);
@@ -222,7 +223,7 @@ public class TaskCreationGUI extends JDialog {
         taskDescriptionArea.setFont(new Font("Arial", Font.PLAIN, 11));
         taskDescriptionArea.setToolTipText("Optional: add details, location, or notes about the task");
         taskDescriptionArea.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(150, 150, 200), 1),
+            BorderFactory.createLineBorder(ThemeManager.getBorderColor(), 1),
             BorderFactory.createEmptyBorder(5, 8, 5, 8)
         ));
         JScrollPane taskDescScroll = new JScrollPane(taskDescriptionArea);
@@ -237,14 +238,14 @@ public class TaskCreationGUI extends JDialog {
 
     private JPanel createEventPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(245, 250, 255));
-        panel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
-            "Event Details",
-            0, 0,
-            new Font("Arial", Font.BOLD, 11),
-            new Color(50, 100, 150)
-        ));
+        panel.setBackground(ThemeManager.getPanelBackground());
+        javax.swing.border.TitledBorder etb = BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(ThemeManager.getBorderColor(), 2),
+            "Event Details"
+        );
+        etb.setTitleFont(new Font("Arial", Font.BOLD, 11));
+        etb.setTitleColor(ThemeManager.getTextColor());
+        panel.setBorder(etb);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -276,7 +277,7 @@ public class TaskCreationGUI extends JDialog {
         panel.add(startLabel, gbc);
 
         JPanel startDatePanel = new JPanel(new BorderLayout(5, 0));
-        startDatePanel.setBackground(new Color(245, 250, 255));
+        startDatePanel.setBackground(ThemeManager.getPanelBackground());
         
         eventStartDateField = new JTextField(15);
         styleTextField(eventStartDateField);
@@ -285,8 +286,8 @@ public class TaskCreationGUI extends JDialog {
         JButton eventStartDatePickerBtn = new JButton("Pick");
         eventStartDatePickerBtn.setFont(new Font("Arial", Font.PLAIN, 12));
         eventStartDatePickerBtn.setPreferredSize(new Dimension(35, 30));
-        eventStartDatePickerBtn.setBackground(new Color(100, 200, 255));
-        eventStartDatePickerBtn.setForeground(Color.WHITE);
+        eventStartDatePickerBtn.setBackground(ThemeManager.getHeaderBackground());
+        eventStartDatePickerBtn.setForeground(ThemeManager.getTextColor());
         eventStartDatePickerBtn.setFocusPainted(false);
         eventStartDatePickerBtn.addActionListener(e -> openEventStartDatePicker());
         startDatePanel.add(eventStartDatePickerBtn, BorderLayout.EAST);
@@ -343,7 +344,7 @@ public class TaskCreationGUI extends JDialog {
         eventDescriptionArea.setFont(new Font("Arial", Font.PLAIN, 11));
         eventDescriptionArea.setToolTipText("Optional: add details or notes about the event");
         eventDescriptionArea.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(150, 150, 200), 1),
+            BorderFactory.createLineBorder(ThemeManager.getBorderColor(), 1),
             BorderFactory.createEmptyBorder(5, 8, 5, 8)
         ));
         JScrollPane eventDescScroll = new JScrollPane(eventDescriptionArea);
@@ -377,7 +378,15 @@ public class TaskCreationGUI extends JDialog {
         createButton.setFont(new Font("Arial", Font.BOLD, 12));
         cancelButton.setFont(new Font("Arial", Font.BOLD, 12));
 
-        createButton.addActionListener(e -> createItem());
+        createButton.addActionListener(e -> {
+            // Play a short bell to indicate the Create button was pressed
+            try {
+                SoundPlayer.playBell();
+            } catch (Throwable t) {
+                // ignore sound failures
+            }
+            createItem();
+        });
         cancelButton.addActionListener(e -> dispose());
 
         styleButton(createButton, new Color(76, 175, 80));
@@ -502,6 +511,48 @@ public class TaskCreationGUI extends JDialog {
                 button.setBackground(backgroundColor);
             }
         });
+    }
+
+    // Apply current theme to all components inside this dialog
+    public void applyTheme() {
+        Container root = this.getContentPane();
+        applyThemeToComponent(root, true);
+        SwingUtilities.updateComponentTreeUI(this);
+        this.repaint();
+    }
+
+    private void applyThemeToComponent(Component comp, boolean isRoot) {
+        if (comp == null) return;
+        if (comp instanceof JComponent) {
+            if (isRoot) {
+                comp.setBackground(ThemeManager.getBackgroundColor());
+            } else {
+                comp.setBackground(ThemeManager.getPanelBackground());
+            }
+        }
+
+        if (comp instanceof JLabel) {
+            ((JLabel)comp).setForeground(ThemeManager.getTextColor());
+        } else if (comp instanceof JTextField || comp instanceof JComboBox || comp instanceof JTextArea) {
+            comp.setBackground(ThemeManager.getPanelBackground());
+            comp.setForeground(ThemeManager.getTextColor());
+        } else if (comp instanceof JButton) {
+            ((JButton)comp).setForeground(ThemeManager.getTextColor());
+        }
+
+        // Update borders that are line borders to match theme
+        if (comp instanceof JComponent) {
+            javax.swing.border.Border b = ((JComponent)comp).getBorder();
+            if (b instanceof javax.swing.border.LineBorder) {
+                ((JComponent)comp).setBorder(BorderFactory.createLineBorder(ThemeManager.getBorderColor(), 1));
+            }
+        }
+
+        if (comp instanceof Container) {
+            for (Component child : ((Container)comp).getComponents()) {
+                applyThemeToComponent(child, false);
+            }
+        }
     }
 
     public boolean isItemCreated() {

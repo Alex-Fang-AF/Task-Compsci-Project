@@ -156,7 +156,7 @@ public class Task {
         return sb.toString();
     }
 
-    // Edit task details
+    // Update task in order
     public void editTask(String newName, LocalDate newDueDate, TaskPriority newPriority, String newDescription) {
         if (newName != null && !newName.isEmpty()) {
             this.taskName = newName;

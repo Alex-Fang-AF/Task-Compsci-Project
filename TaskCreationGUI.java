@@ -496,50 +496,29 @@ public class TaskCreationGUI extends JDialog {
                 System.out.println("DEBUG: Creating task - Name: '" + name + "', Due Date: " + dueDate);
                 System.out.println("DEBUG: Task object - Name: '" + task.getTaskName() + "'");
                 calendar.addTask(task);
-                // If user selected an alarm, allow them to choose a re-notify interval (0..720 minutes) now
+                // If user selected an alarm, schedule it using the inline repeat combo (no modal)
                 if (alarmCheckBox != null && alarmCheckBox.isSelected()) {
-                    // derive default from alarmRepeatCombo if possible
-                    int defaultMinutes = 30;
+                    int chosenMinutes = 30;
                     try {
                         if (alarmRepeatCombo != null && alarmRepeatCombo.getSelectedItem() != null) {
                             String s = alarmRepeatCombo.getSelectedItem().toString();
-                            java.util.Scanner sc = new java.util.Scanner(s);
-                            if (sc.hasNextInt()) defaultMinutes = sc.nextInt();
-                            sc.close();
+                            String digits = s.replaceAll("\\D+", "");
+                            if (!digits.isEmpty()) chosenMinutes = Integer.parseInt(digits);
                         }
                     } catch (Throwable t) {
-                        // fallback to 30
-                        defaultMinutes = 30;
+                        chosenMinutes = 30;
                     }
 
-                    // build minute choices 0..720
-                    Integer[] minuteChoices = new Integer[721];
-                    for (int i = 0; i <= 720; i++) minuteChoices[i] = i;
-                    JComboBox<Integer> minuteSelector = new JComboBox<>(minuteChoices);
-                    minuteSelector.setSelectedItem(defaultMinutes);
-
-                    JPanel p = new JPanel(new BorderLayout(8,8));
-                    p.add(new JLabel("Choose re-notify interval (minutes). Select 0 to not schedule repeated reminders."), BorderLayout.NORTH);
-                    p.add(minuteSelector, BorderLayout.CENTER);
-
-                    int res = JOptionPane.showConfirmDialog(this, p, "Set re-notify interval", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-                    if (res == JOptionPane.OK_OPTION) {
-                        Integer chosen = (Integer) minuteSelector.getSelectedItem();
-                        if (chosen == null) chosen = defaultMinutes;
-
-                        int hr = 9;
-                        int min = 0;
-                        if (hourCombo != null && minuteCombo != null) {
-                            Object hsel = hourCombo.getSelectedItem();
-                            Object msel = minuteCombo.getSelectedItem();
-                            if (hsel instanceof Integer) hr = (Integer) hsel;
-                            if (msel instanceof Integer) min = (Integer) msel;
-                        }
-                        java.time.LocalTime timeOfDay = java.time.LocalTime.of(hr, min);
-                        AlarmManager.scheduleAlarm(task, chosen, timeOfDay);
-                    } else {
-                        // user cancelled - do not schedule alarm
+                    int hr = 9;
+                    int min = 0;
+                    if (hourCombo != null && minuteCombo != null) {
+                        Object hsel = hourCombo.getSelectedItem();
+                        Object msel = minuteCombo.getSelectedItem();
+                        if (hsel instanceof Integer) hr = (Integer) hsel;
+                        if (msel instanceof Integer) min = (Integer) msel;
                     }
+                    java.time.LocalTime timeOfDay = java.time.LocalTime.of(hr, min);
+                    AlarmManager.scheduleAlarm(task, chosenMinutes, timeOfDay);
                 }
                 System.out.println("DEBUG: Tasks in calendar after adding: " + calendar.getTasksList().size());
                 itemCreated = true;

@@ -6,6 +6,9 @@ import javax.sound.sampled.*;
  */
 public class SoundPlayer {
 
+    // Holds reference to the currently playing line so it can be stopped from other threads
+    private static volatile SourceDataLine currentLine = null;
+
     // Play a single tone (frequency in Hz) for durationMs milliseconds.
     public static void playTone(double freq, int durationMs) {
         new Thread(() -> {
@@ -22,12 +25,22 @@ public class SoundPlayer {
                 }
 
                 AudioFormat af = new AudioFormat(sampleRate, 16, 1, true, false);
-                try (SourceDataLine line = AudioSystem.getSourceDataLine(af)) {
+                SourceDataLine line = null;
+                try {
+                    line = AudioSystem.getSourceDataLine(af);
+                    synchronized (SoundPlayer.class) { currentLine = line; }
                     line.open(af);
                     line.start();
                     line.write(buf, 0, buf.length);
                     line.drain();
                     line.stop();
+                } finally {
+                    if (line != null) {
+                        try { line.close(); } catch (Throwable t) { }
+                        synchronized (SoundPlayer.class) {
+                            if (currentLine == line) currentLine = null;
+                        }
+                    }
                 }
             } catch (Exception e) {
                 // silent fail - sound is non-critical
@@ -100,15 +113,43 @@ public class SoundPlayer {
             }
 
             AudioFormat af = new AudioFormat(sampleRate, 16, 1, true, false);
-            try (SourceDataLine line = AudioSystem.getSourceDataLine(af)) {
+            SourceDataLine line = null;
+            try {
+                line = AudioSystem.getSourceDataLine(af);
+                synchronized (SoundPlayer.class) { currentLine = line; }
                 line.open(af);
                 line.start();
                 line.write(buf, 0, buf.length);
                 line.drain();
                 line.stop();
+            } finally {
+                if (line != null) {
+                    try { line.close(); } catch (Throwable t) { }
+                    synchronized (SoundPlayer.class) {
+                        if (currentLine == line) currentLine = null;
+                    }
+                }
             }
         } catch (Exception e) {
             // silent fail - sound is non-critical
+        }
+    }
+
+    // Stop any currently playing tone immediately.
+    public static void stopAll() {
+        SourceDataLine line = currentLine;
+        if (line != null) {
+            synchronized (SoundPlayer.class) {
+                line = currentLine;
+                if (line != null) {
+                    try {
+                        line.stop();
+                        line.flush();
+                        line.close();
+                    } catch (Throwable t) { /* ignore */ }
+                    currentLine = null;
+                }
+            }
         }
     }
 }

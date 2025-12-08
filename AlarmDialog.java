@@ -42,15 +42,21 @@ public class AlarmDialog extends JDialog {
             ok.addActionListener(e -> {
                 // stop the looping sound immediately
                 stopLoop();
+                // play a short confirmation tone for "continue/set interval"
+                try { SoundPlayer.playComedic(); } catch (Throwable t) { /* ignore */ }
                 Integer chosen = (Integer) repeatSelector.getSelectedItem();
                 if (chosen == null) chosen = 0;
-                // schedule a one-shot after chosen minutes (0 triggers immediately)
-                AlarmManager.scheduleOneShot(task, chosen);
+                // If chosen == 0, do NOT schedule repeated reminders (user chose no repeat)
+                if (chosen > 0) {
+                    AlarmManager.scheduleOneShot(task, chosen);
+                }
                 dispose();
             });
             cancel.addActionListener(e -> {
                 // stop the looping sound immediately and cancel alarm
                 stopLoop();
+                // play a different short tone to indicate cancellation
+                try { SoundPlayer.playBell(); } catch (Throwable t) { /* ignore */ }
                 AlarmManager.cancelAlarm(task);
                 dispose();
             });
@@ -110,5 +116,7 @@ public class AlarmDialog extends JDialog {
         } catch (Throwable t) {
             // ignore
         }
+        // Also stop any currently playing audio immediately
+        try { SoundPlayer.stopAll(); } catch (Throwable t) { /* ignore */ }
     }
 }

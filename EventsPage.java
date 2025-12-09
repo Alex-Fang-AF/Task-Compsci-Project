@@ -1,3 +1,8 @@
+/**
+ * EventsPage.java
+ *
+ * Full-page list view for events.
+ */
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;

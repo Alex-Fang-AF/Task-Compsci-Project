@@ -1,4 +1,10 @@
 import java.awt.*;
+/**
+ * CalendarImportGUI.java
+ *
+ * Calendar import helper UI (legacy; import merged into CalendarGUI).
+ */
+import java.awt.*;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;

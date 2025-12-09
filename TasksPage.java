@@ -1,3 +1,8 @@
+/**
+ * TasksPage.java
+ *
+ * Full-page list view for tasks.
+ */
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;

@@ -1,10 +1,14 @@
                   import java.awt.*;
+                /**
+                 * CalendarGUI.java
+                 *
+                 * Month-view calendar user interface.
+                 */
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import javax.swing.*;
-//Created with assistance from Copilot/reference to existing CalendarGUI structures MarcoBackman @Github
-//Reference to https://stackoverflow.com/questions/63224864/how-to-create-a-calendar-in-java-swing
+
 public class CalendarGUI extends JFrame {
     private final MyCalendar calendar;
     private YearMonth currentYearMonth;

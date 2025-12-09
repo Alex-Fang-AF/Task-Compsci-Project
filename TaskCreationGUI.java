@@ -1,3 +1,8 @@
+/**
+ * TaskCreationGUI.java
+ *
+ * Dialog to create tasks or events with optional alarms.
+ */
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

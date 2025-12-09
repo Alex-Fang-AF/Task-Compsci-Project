@@ -1,3 +1,8 @@
+/**
+ * AlarmDialog.java
+ *
+ * Dialog shown when an alarm fires.
+ */
 import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import javax.swing.*;

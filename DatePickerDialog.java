@@ -1,3 +1,8 @@
+/**
+ * DatePickerDialog.java
+ *
+ * Simple date selection dialog used by forms.
+ */
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.YearMonth;

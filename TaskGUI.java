@@ -1,3 +1,8 @@
+/**
+ * TaskGUI.java
+ *
+ * Main application window and navigation.
+ */
 import java.awt.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;

@@ -1,3 +1,8 @@
+/**
+ * TaskManager.java
+ *
+ * Lightweight manager for tasks (helper in some UIs).
+ */
 import java.util.List;
 
 public class TaskManager {

@@ -1,3 +1,8 @@
+/**
+ * Event.java
+ *
+ * Data model for multi-day events.
+ */
 import java.time.LocalDate;
 
 public class Event {

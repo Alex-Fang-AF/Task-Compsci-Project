@@ -1,3 +1,8 @@
+/**
+ * DetailPage.java
+ *
+ * Popup showing details for a Task or Event.
+ */
 import javax.swing.*;
 import java.awt.*;
 

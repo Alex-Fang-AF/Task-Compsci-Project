@@ -1,3 +1,8 @@
+/**
+ * MyCalendar.java
+ *
+ * In-memory calendar model managing tasks and events.
+ */
 import java.time.LocalDate;
 import java.util.*;
 import java.io.IOException;

@@ -16,12 +16,12 @@ public class AlarmManagementGUI extends JDialog {
     }
 
     private void initUI() {
-        JPanel main = new JPanel(new BorderLayout(10,10));
+        RoundedPanel main = new RoundedPanel(12, ThemeManager.getPanelBackground());
+        main.setLayout(new BorderLayout(10,10));
         main.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
-        main.setBackground(ThemeManager.getPanelBackground());
 
         JLabel header = new JLabel("Scheduled Alarms");
-        header.setFont(new Font("Arial", Font.BOLD, 16));
+        header.setFont(new Font("Segoe UI", Font.BOLD, 16));
         header.setForeground(ThemeManager.getTextColor());
         main.add(header, BorderLayout.NORTH);
 
@@ -45,7 +45,7 @@ public class AlarmManagementGUI extends JDialog {
         main.add(sp, BorderLayout.CENTER);
 
         JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        btns.setBackground(ThemeManager.getPanelBackground());
+        btns.setOpaque(false);
 
         JButton refresh = new JButton("Refresh");
         JButton cancel = new JButton("Cancel Alarm");
@@ -77,6 +77,10 @@ public class AlarmManagementGUI extends JDialog {
         });
         close.addActionListener(e -> dispose());
 
+        UIUtils.styleButton(refresh, new Color(33,150,243));
+        UIUtils.styleButton(change, new Color(76,175,80));
+        UIUtils.styleButton(cancel, new Color(244,67,54));
+        UIUtils.styleButton(close, new Color(120,120,120));
         btns.add(refresh);
         btns.add(change);
         btns.add(cancel);

@@ -8,16 +8,17 @@ public class DetailPage extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        JPanel main = new JPanel(new BorderLayout(8,8));
+        RoundedPanel main = new RoundedPanel(12, ThemeManager.getPanelBackground());
+        main.setLayout(new BorderLayout(8,8));
         main.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 
         JLabel title = new JLabel(task.getTaskName(), SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 18));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         main.add(title, BorderLayout.NORTH);
 
         String taskDescShort = (task.getDescription() != null && !task.getDescription().isEmpty()) ? task.getDescription() : "(No description)";
         JLabel subtitle = new JLabel("Detail of task: " + taskDescShort, SwingConstants.LEFT);
-        subtitle.setFont(new Font("Arial", Font.ITALIC, 12));
+        subtitle.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         subtitle.setForeground(new Color(80, 80, 80));
 
         JTextArea desc = new JTextArea();
@@ -29,7 +30,7 @@ public class DetailPage extends JFrame {
         sb.append("Priority: ").append(task.getPriority() != null ? task.getPriority().getDisplayName() : "").append("\n\n");
         sb.append(task.getDescription() != null && !task.getDescription().isEmpty() ? task.getDescription() : "(No description)");
         desc.setText(sb.toString());
-        desc.setFont(new Font("Arial", Font.PLAIN, 14));
+        desc.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         JScrollPane sp = new JScrollPane(desc);
 
         // Center panel holds subtitle directly above the description
@@ -41,7 +42,9 @@ public class DetailPage extends JFrame {
         main.add(centerPanel, BorderLayout.CENTER);
 
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottom.setOpaque(false);
         JButton close = new JButton("Close");
+        UIUtils.styleButton(close, new Color(120,120,120));
         close.addActionListener(e -> dispose());
         bottom.add(close);
         main.add(bottom, BorderLayout.SOUTH);
@@ -66,12 +69,12 @@ public class DetailPage extends JFrame {
         main.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 
         JLabel title = new JLabel(event.getEventName(), SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 18));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         main.add(title, BorderLayout.NORTH);
 
         String eventDescShort = (event.getDescription() != null && !event.getDescription().isEmpty()) ? event.getDescription() : "(No description)";
         JLabel subtitle = new JLabel("Detail of event: " + eventDescShort, SwingConstants.LEFT);
-        subtitle.setFont(new Font("Arial", Font.ITALIC, 12));
+        subtitle.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         subtitle.setForeground(new Color(80, 80, 80));
         JTextArea desc = new JTextArea();
         desc.setEditable(false);
@@ -82,7 +85,7 @@ public class DetailPage extends JFrame {
         sb.append("To:   ").append(event.getEndDate()).append("\n\n");
         sb.append(event.getDescription() != null && !event.getDescription().isEmpty() ? event.getDescription() : "(No description)");
         desc.setText(sb.toString());
-        desc.setFont(new Font("Arial", Font.PLAIN, 14));
+        desc.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         JScrollPane sp = new JScrollPane(desc);
 
         JPanel centerPanel = new JPanel(new BorderLayout(4,4));
@@ -93,7 +96,9 @@ public class DetailPage extends JFrame {
         main.add(centerPanel, BorderLayout.CENTER);
 
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottom.setOpaque(false);
         JButton close = new JButton("Close");
+        UIUtils.styleButton(close, new Color(120,120,120));
         close.addActionListener(e -> dispose());
         bottom.add(close);
         main.add(bottom, BorderLayout.SOUTH);

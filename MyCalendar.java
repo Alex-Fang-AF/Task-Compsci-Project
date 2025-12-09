@@ -1,5 +1,12 @@
 import java.time.LocalDate;
 import java.util.*;
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class MyCalendar {
 
@@ -28,6 +35,9 @@ public class MyCalendar {
     }
 
     public List<Task> getTasksList() {
+        // Remove any tasks whose deadline has passed before returning the list.
+        removeExpiredTasks();
+
         List<Task> sortedTasks = new ArrayList<>(tasksList);
         sortedTasks.sort((a, b) -> {
             // First sort by due date (earlier dates first)
@@ -41,6 +51,25 @@ public class MyCalendar {
             return Integer.compare(bPriority, aPriority);
         });
         return Collections.unmodifiableList(sortedTasks);
+    }
+
+    /**
+     * Remove tasks whose due date is before today's date.
+     * Returns the number of removed tasks.
+     */
+    public int removeExpiredTasks() {
+        LocalDate today = LocalDate.now();
+        int removed = 0;
+        Iterator<Task> it = tasksList.iterator();
+        while (it.hasNext()) {
+            Task t = it.next();
+            if (t.getDueDate() != null && t.getDueDate().isBefore(today)) {
+                it.remove();
+                removed++;
+                System.out.println("Removed expired task: " + t.getTaskName() + " due " + t.getDueDate());
+            }
+        }
+        return removed;
     }
 
     public void showTasksOn(LocalDate date) {
@@ -107,6 +136,33 @@ public class MyCalendar {
             for (Event event : events) {
                 System.out.println("- " + event.getEventName());
             }
+        }
+    }
+
+    // Simple persistence helpers (moved from DSSave)
+    public void saveTasksToFile(String filename) throws IOException {
+        Path path = Paths.get(filename);
+        List<String> lines = new ArrayList<>();
+        for (Task t : tasksList) {
+            String nameEnc = URLEncoder.encode(t.getTaskName(), StandardCharsets.UTF_8.toString());
+            String date = t.getDueDate().toString();
+            lines.add(nameEnc + "\t" + date);
+        }
+        Files.write(path, lines, StandardCharsets.UTF_8);
+    }
+
+    public void loadTasksFromFile(String filename) throws IOException {
+        Path path = Paths.get(filename);
+        if (!Files.exists(path)) return;
+        List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+        tasksList.clear();
+        for (String line : lines) {
+            if (line == null || line.trim().isEmpty()) continue;
+            String[] parts = line.split("\t", 2);
+            if (parts.length != 2) continue;
+            String name = URLDecoder.decode(parts[0], StandardCharsets.UTF_8.toString());
+            LocalDate date = LocalDate.parse(parts[1]);
+            tasksList.add(new Task(name, date));
         }
     }
 

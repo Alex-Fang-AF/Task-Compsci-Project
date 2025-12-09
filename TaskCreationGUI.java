@@ -18,8 +18,10 @@ public class TaskCreationGUI extends JDialog {
     private JTextArea taskDescriptionArea;
     private JCheckBox alarmCheckBox;
     private JComboBox<String> alarmRepeatCombo;
-    private JComboBox<Integer> hourCombo;
+    private JComboBox<Integer> hourComboAM;
+    private JComboBox<Integer> hourComboPM;
     private JComboBox<Integer> minuteCombo;
+    private JTabbedPane amPmTabs;
     private JTextField eventNameField;
     private JTextField eventStartDateField;
     private JTextField eventEndDateField;
@@ -83,14 +85,14 @@ public class TaskCreationGUI extends JDialog {
         setLocationRelativeTo(getParent());
         setResizable(true);
 
-        // Main panel
-        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
+        // Main panel (rounded)
+        RoundedPanel mainPanel = new RoundedPanel(12, ThemeManager.getBackgroundColor());
+        mainPanel.setLayout(new BorderLayout(15, 15));
         mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        mainPanel.setBackground(ThemeManager.getBackgroundColor());
 
         // Title
         JLabel titleLabel = new JLabel("Create New Item");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         titleLabel.setForeground(new Color(50, 100, 150));
         mainPanel.add(titleLabel, BorderLayout.NORTH);
 
@@ -262,25 +264,50 @@ public class TaskCreationGUI extends JDialog {
         alarmRepeatCombo.setForeground(ThemeManager.getTextColor());
         alarmRepeatCombo.setFont(new Font("Arial", Font.PLAIN, 11));
 
-        // Hour/minute selectors for time-of-day alarm
-        Integer[] hours = new Integer[24];
-        for (int i = 0; i < 24; i++) hours[i] = i;
-        hourCombo = new JComboBox<>(hours);
-        hourCombo.setSelectedItem(java.time.LocalTime.now().getHour());
-        hourCombo.setBackground(ThemeManager.getPanelBackground());
-        hourCombo.setForeground(ThemeManager.getTextColor());
+        // Hour/minute selectors for time-of-day alarm (12-hour with AM/PM tabs)
+        Integer[] hours12 = new Integer[12];
+        for (int i = 0; i < 12; i++) hours12[i] = i + 1; // 1..12
+        hourComboAM = new JComboBox<>(hours12);
+        hourComboPM = new JComboBox<>(hours12);
+        // Set selected hour based on current time
+        int curHour = java.time.LocalTime.now().getHour();
+        int curMinute = java.time.LocalTime.now().getMinute();
+        int sel12 = (curHour % 12 == 0) ? 12 : curHour % 12;
+        if (curHour < 12) {
+            hourComboAM.setSelectedItem(sel12);
+            hourComboPM.setSelectedItem(1);
+        } else {
+            hourComboPM.setSelectedItem(sel12);
+            hourComboAM.setSelectedItem(1);
+        }
+        hourComboAM.setBackground(ThemeManager.getPanelBackground());
+        hourComboAM.setForeground(ThemeManager.getTextColor());
+        hourComboPM.setBackground(ThemeManager.getPanelBackground());
+        hourComboPM.setForeground(ThemeManager.getTextColor());
 
         Integer[] mins = new Integer[60];
         for (int i = 0; i < 60; i++) mins[i] = i;
         minuteCombo = new JComboBox<>(mins);
-        minuteCombo.setSelectedItem(java.time.LocalTime.now().getMinute());
+        minuteCombo.setSelectedItem(curMinute);
         minuteCombo.setBackground(ThemeManager.getPanelBackground());
         minuteCombo.setForeground(ThemeManager.getTextColor());
 
+        // AM/PM tabbed pane
+        amPmTabs = new JTabbedPane();
+        JPanel amPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        amPanel.setBackground(ThemeManager.getPanelBackground());
+        amPanel.add(new JLabel("Hour:"));
+        amPanel.add(hourComboAM);
+        JPanel pmPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        pmPanel.setBackground(ThemeManager.getPanelBackground());
+        pmPanel.add(new JLabel("Hour:"));
+        pmPanel.add(hourComboPM);
+        amPmTabs.addTab("AM", amPanel);
+        amPmTabs.addTab("PM", pmPanel);
+
         alarmPanel.add(alarmCheckBox);
         alarmPanel.add(alarmRepeatCombo);
-        alarmPanel.add(new JLabel("Hour:"));
-        alarmPanel.add(hourCombo);
+        alarmPanel.add(amPmTabs);
         alarmPanel.add(new JLabel("Min:"));
         alarmPanel.add(minuteCombo);
 
@@ -511,11 +538,21 @@ public class TaskCreationGUI extends JDialog {
 
                     int hr = 9;
                     int min = 0;
-                    if (hourCombo != null && minuteCombo != null) {
-                        Object hsel = hourCombo.getSelectedItem();
+                    if (amPmTabs != null && minuteCombo != null) {
                         Object msel = minuteCombo.getSelectedItem();
-                        if (hsel instanceof Integer) hr = (Integer) hsel;
                         if (msel instanceof Integer) min = (Integer) msel;
+                        int selectedTab = amPmTabs.getSelectedIndex(); // 0 = AM, 1 = PM
+                        if (selectedTab == 0) {
+                            Object hsel = hourComboAM.getSelectedItem();
+                            int hr12 = (hsel instanceof Integer) ? (Integer) hsel : 9;
+                            // 12 AM => 0
+                            hr = (hr12 == 12) ? 0 : hr12;
+                        } else {
+                            Object hsel = hourComboPM.getSelectedItem();
+                            int hr12 = (hsel instanceof Integer) ? (Integer) hsel : 9;
+                            // 12 PM => 12
+                            hr = (hr12 == 12) ? 12 : hr12 + 12;
+                        }
                     }
                     java.time.LocalTime timeOfDay = java.time.LocalTime.of(hr, min);
                     AlarmManager.scheduleAlarm(task, chosenMinutes, timeOfDay);
@@ -559,39 +596,11 @@ public class TaskCreationGUI extends JDialog {
     }
 
     private void styleTextField(JTextField field) {
-        field.setFont(new Font("Arial", Font.PLAIN, 11));
-        field.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(150, 150, 200), 1),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        field.setBackground(new Color(255, 255, 255));
-        field.setCaretColor(new Color(50, 100, 150));
+        UIUtils.styleTextField(field);
     }
 
     private void styleButton(JButton button, Color backgroundColor) {
-        button.setFont(new Font("Arial", Font.BOLD, 11));
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(backgroundColor.darker(), 1),
-            BorderFactory.createEmptyBorder(8, 12, 8, 12)
-        ));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setOpaque(true);
-
-        // Add hover effect
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(backgroundColor.darker());
-            }
-
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(backgroundColor);
-            }
-        });
+        UIUtils.styleButton(button, backgroundColor);
     }
 
     // Apply current theme to all components inside this dialog

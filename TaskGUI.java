@@ -18,6 +18,7 @@ public class TaskGUI extends JFrame {
     private JPanel eventsCard;
     private TasksPage tasksPageWindow;
     private EventsPage eventsPageWindow;
+    private CombinedPage combinedPageWindow;
     
     // Small inline area fields removed in favor of full page windows
     // Larger dedicated areas for full-sized pages
@@ -58,38 +59,41 @@ public class TaskGUI extends JFrame {
 
     // Create and organize all panels
     private void createPanels() {
-        // Top panel with theme toggle button on the left
+        // Top panel with project title center and theme toggle at top-right
         JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(ThemeManager.getBackgroundColor());
-        topPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        topPanel.setBackground(ThemeManager.getHeaderBackground());
+        topPanel.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
 
-        // Create circular theme toggle button
-        // Button text should show the mode it will switch to if dark show light, if light show dark button
-        String btnText = ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK ? "Light" : "Dark";
-        JButton themeToggleButton = createCircularButton(btnText, 55);
-        // When clicked, toggle the theme. A listener below will update UI everywhere.
-        themeToggleButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                ThemeManager.toggleTheme();
-            }
-        });
-        // Register a listener so when theme changes we update text and apply theme across windows
+        // Title in center
+        JLabel titleLabel = new JLabel("TaskTracker", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        titleLabel.setForeground(ThemeManager.getTextColor());
+        topPanel.add(titleLabel, BorderLayout.CENTER);
+
+        // Create small circular theme toggle button at the right
+        String btnText = ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK ? "☀" : "🌙";
+        JButton themeToggleButton = createCircularButton(btnText, 36);
+        themeToggleButton.setToolTipText("Toggle light/dark mode");
+        themeToggleButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        themeToggleButton.setBackground(ThemeManager.getPanelBackground());
+        themeToggleButton.setForeground(ThemeManager.getTextColor());
+        themeToggleButton.addActionListener(e -> ThemeManager.toggleTheme());
         ThemeManager.addListener(new ThemeManager.ThemeChangeListener() {
             public void onThemeChanged(ThemeManager.Theme newTheme) {
-                themeToggleButton.setText(newTheme == ThemeManager.Theme.DARK ? "Light" : "Dark");
+                themeToggleButton.setText(newTheme == ThemeManager.Theme.DARK ? "☀" : "🌙");
+                titleLabel.setForeground(ThemeManager.getTextColor());
                 applyTheme();
                 if (tasksPageWindow != null) tasksPageWindow.applyTheme();
                 if (eventsPageWindow != null) eventsPageWindow.applyTheme();
+                if (combinedPageWindow != null) combinedPageWindow.applyTheme();
                 if (calendarWindow != null) calendarWindow.applyTheme();
             }
         });
-        styleButton(themeToggleButton, new Color(100, 100, 100));
 
-        JPanel leftPanel = new JPanel();
-        leftPanel.setBackground(ThemeManager.getBackgroundColor());
-        leftPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        leftPanel.add(themeToggleButton);
-        topPanel.add(leftPanel, BorderLayout.WEST);
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        rightPanel.setOpaque(false);
+        rightPanel.add(themeToggleButton);
+        topPanel.add(rightPanel, BorderLayout.EAST);
 
         // Main panel with border layout
         mainPanel = new JPanel(new BorderLayout(12, 12));
@@ -216,26 +220,28 @@ public class TaskGUI extends JFrame {
 
     // Style buttons with colors
     private void styleButton(JButton button, Color backgroundColor) {
-        button.setFont(new Font("Arial", Font.BOLD, 11));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
         button.setBackground(backgroundColor);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(backgroundColor.darker(), 1),
-            BorderFactory.createEmptyBorder(8, 12, 8, 12)
+            BorderFactory.createEmptyBorder(10, 16, 10, 16)
         ));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        // Add hover effect
+
+        // Add refined hover effect
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(backgroundColor.darker());
+                button.setLocation(button.getX(), button.getY()-1);
             }
-            
+
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setBackground(backgroundColor);
+                button.setLocation(button.getX(), button.getY()+1);
             }
         });
     }
@@ -275,13 +281,10 @@ public class TaskGUI extends JFrame {
         
     // Display all tasks and events
     private void showAllItems() {
-        showAllTasks();
-        showAllEvents();
-        // default to open Tasks page when requested
-        if (tasksPageWindow == null) tasksPageWindow = new TasksPage(calendar);
-        tasksPageWindow.refresh();
-        tasksPageWindow.setVisible(true);
-        // Also refresh any open full-page windows
+        if (combinedPageWindow == null) combinedPageWindow = new CombinedPage(calendar);
+        combinedPageWindow.refresh();
+        combinedPageWindow.setVisible(true);
+        // Also refresh legacy pages if open
         if (tasksPageWindow != null) tasksPageWindow.refresh();
         if (eventsPageWindow != null) eventsPageWindow.refresh();
     }

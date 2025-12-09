@@ -70,8 +70,8 @@ public class TaskGUI extends JFrame {
         titleLabel.setForeground(ThemeManager.getTextColor());
         topPanel.add(titleLabel, BorderLayout.CENTER);
 
-        // Create small circular theme toggle button at the right
-        String btnText = ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK ? "☀" : "🌙";
+        // Create small circular theme toggle button at the right — single sun symbol that changes color
+        String btnText = "☀";
         JButton themeToggleButton = createCircularButton(btnText, 36);
         themeToggleButton.setToolTipText("Toggle light/dark mode");
         themeToggleButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -80,7 +80,12 @@ public class TaskGUI extends JFrame {
         themeToggleButton.addActionListener(e -> ThemeManager.toggleTheme());
         ThemeManager.addListener(new ThemeManager.ThemeChangeListener() {
             public void onThemeChanged(ThemeManager.Theme newTheme) {
-                themeToggleButton.setText(newTheme == ThemeManager.Theme.DARK ? "☀" : "🌙");
+                // Keep sun glyph; change its color to indicate theme
+                if (newTheme == ThemeManager.Theme.DARK) {
+                    themeToggleButton.setForeground(new Color(180,180,180));
+                } else {
+                    themeToggleButton.setForeground(new Color(255,200,0));
+                }
                 titleLabel.setForeground(ThemeManager.getTextColor());
                 applyTheme();
                 if (tasksPageWindow != null) tasksPageWindow.applyTheme();
@@ -289,24 +294,7 @@ public class TaskGUI extends JFrame {
         if (eventsPageWindow != null) eventsPageWindow.refresh();
     }
 
-    // Display all tasks
-    private void showAllTasks() {
-        StringBuilder sb = new StringBuilder();
-        System.out.println("DEBUG: showAllTasks called. Tasks count: " + calendar.getTasksList().size());
-        if (calendar.getTasksList().isEmpty()) {
-            sb.append("No tasks added yet.");
-        } else {
-            
-            for (Task task : calendar.getTasksList()) {
-                System.out.println("DEBUG: Task - Name: '" + task.getTaskName() + "', Due: " + task.getDueDate());
-                sb.append("- ").append(task.getTaskName()).append(" - Due: ").append(task.getDueDate()).append("\n");
-            }
-        }
-        // Open and refresh the dedicated Tasks full-page view
-        if (tasksPageWindow == null) tasksPageWindow = new TasksPage(calendar);
-        tasksPageWindow.refresh();
-        tasksPageWindow.setVisible(true);
-    }
+    // Display all tasks (legacy - now use CombinedPage)
 
     // Remove a task or event by name
     private void removeItem() {
@@ -769,13 +757,7 @@ public class TaskGUI extends JFrame {
     }
 
 
-    // Display all events
-    private void showAllEvents() {
-        // Open and refresh the dedicated Events full-page view
-        if (eventsPageWindow == null) eventsPageWindow = new EventsPage(calendar);
-        eventsPageWindow.refresh();
-        eventsPageWindow.setVisible(true);
-    }
+    // Display all events (legacy - now use CombinedPage)
 
     // Apply theme colors to all components recursively
     private void applyTheme() {

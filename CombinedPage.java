@@ -131,6 +131,18 @@ public class CombinedPage extends JFrame {
         name.setForeground(ThemeManager.getTextColor());
         p.add(name, BorderLayout.CENTER);
 
+        // bell if scheduled
+        try {
+            if (AlarmManager.getScheduledTasks().contains(t)) {
+                JLabel bell = new JLabel("\uD83D\uDD14");
+                bell.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 14));
+                bell.setForeground(new Color(220, 100, 20));
+                p.add(bell, BorderLayout.WEST);
+            }
+        } catch (Throwable ex) {
+            // ignore
+        }
+
         JLabel meta = new JLabel(t.getFormattedDueDate());
         meta.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         meta.setForeground(ThemeManager.getTextColor());

@@ -177,6 +177,20 @@ public class TasksPage extends JFrame {
                 String due = "Due: " + task.getFormattedDueDate();
                 String pr = task.getPriority() != null ? "[" + task.getPriority().getDisplayName() + "]" : "";
                 g2.drawString(due + "    " + pr, textX, textY + 20);
+
+                // Draw bell icon if an alarm is scheduled for this task
+                try {
+                    java.util.List<Task> scheduled = AlarmManager.getScheduledTasks();
+                    if (scheduled.contains(task)) {
+                        g2.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 18));
+                        g2.setColor(new Color(220, 100, 20));
+                        String bell = "\uD83D\uDD14"; // 🔔
+                        int bellX = getWidth() - 40;
+                        g2.drawString(bell, bellX, textY);
+                    }
+                } catch (Throwable t) {
+                    // ignore
+                }
             } finally {
                 g2.dispose();
             }

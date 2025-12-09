@@ -17,11 +17,11 @@ public class TaskCreationGUI extends JDialog {
     private JComboBox<String> taskPriorityCombo;
     private JTextArea taskDescriptionArea;
     private JCheckBox alarmCheckBox;
-    private JComboBox<String> alarmRepeatCombo;
-    private JComboBox<Integer> hourComboAM;
-    private JComboBox<Integer> hourComboPM;
+    private JComboBox<String> snoozeCombo;
+    private JComboBox<Integer> hourCombo;
     private JComboBox<Integer> minuteCombo;
-    private JTabbedPane amPmTabs;
+    private JComboBox<String> ampmCombo;
+    private JPanel alarmOptionsPanel;
     private JTextField eventNameField;
     private JTextField eventStartDateField;
     private JTextField eventEndDateField;
@@ -237,7 +237,7 @@ public class TaskCreationGUI extends JDialog {
         gbc.fill = GridBagConstraints.BOTH;
         panel.add(taskDescScroll, gbc);
 
-        // Alarm controls (optional)
+        // Alarm controls (optional) - compact: checkbox + time selectors + snooze
         JLabel alarmLabel = new JLabel("Alarm:");
         alarmLabel.setFont(new Font("Arial", Font.BOLD, 11));
         gbc.gridx = 0;
@@ -251,65 +251,55 @@ public class TaskCreationGUI extends JDialog {
         alarmCheckBox = new JCheckBox("Set reminder alarm");
         alarmCheckBox.setBackground(ThemeManager.getPanelBackground());
         alarmCheckBox.setForeground(ThemeManager.getTextColor());
-        // Build repeat interval options from 0 minutes to 12 hours in 30-minute steps
-        java.util.List<String> repeatsList = new java.util.ArrayList<>();
-        repeatsList.add("0 minutes");
-        for (int mins = 30; mins <= 12 * 60; mins += 30) {
-            repeatsList.add(mins + " minutes");
-        }
-        String[] repeats = repeatsList.toArray(new String[repeatsList.size()]);
-        alarmRepeatCombo = new JComboBox<>(repeats);
-        alarmRepeatCombo.setSelectedIndex(1); // default to 30 minutes
-        alarmRepeatCombo.setBackground(ThemeManager.getPanelBackground());
-        alarmRepeatCombo.setForeground(ThemeManager.getTextColor());
-        alarmRepeatCombo.setFont(new Font("Arial", Font.PLAIN, 11));
 
-        // Hour/minute selectors for time-of-day alarm (12-hour with AM/PM tabs)
+        // Compact time selector (hour : minute AM/PM)
         Integer[] hours12 = new Integer[12];
         for (int i = 0; i < 12; i++) hours12[i] = i + 1; // 1..12
-        hourComboAM = new JComboBox<>(hours12);
-        hourComboPM = new JComboBox<>(hours12);
-        // Set selected hour based on current time
-        int curHour = java.time.LocalTime.now().getHour();
-        int curMinute = java.time.LocalTime.now().getMinute();
-        int sel12 = (curHour % 12 == 0) ? 12 : curHour % 12;
-        if (curHour < 12) {
-            hourComboAM.setSelectedItem(sel12);
-            hourComboPM.setSelectedItem(1);
-        } else {
-            hourComboPM.setSelectedItem(sel12);
-            hourComboAM.setSelectedItem(1);
-        }
-        hourComboAM.setBackground(ThemeManager.getPanelBackground());
-        hourComboAM.setForeground(ThemeManager.getTextColor());
-        hourComboPM.setBackground(ThemeManager.getPanelBackground());
-        hourComboPM.setForeground(ThemeManager.getTextColor());
+        hourCombo = new JComboBox<>(hours12);
 
-        Integer[] mins = new Integer[60];
-        for (int i = 0; i < 60; i++) mins[i] = i;
+        // Minute selector in 5-minute steps
+        Integer[] mins = new Integer[12];
+        for (int i = 0; i < 12; i++) mins[i] = i * 5; // 0,5,10,...55
         minuteCombo = new JComboBox<>(mins);
-        minuteCombo.setSelectedItem(curMinute);
-        minuteCombo.setBackground(ThemeManager.getPanelBackground());
-        minuteCombo.setForeground(ThemeManager.getTextColor());
 
-        // AM/PM tabbed pane
-        amPmTabs = new JTabbedPane();
-        JPanel amPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        amPanel.setBackground(ThemeManager.getPanelBackground());
-        amPanel.add(new JLabel("Hour:"));
-        amPanel.add(hourComboAM);
-        JPanel pmPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        pmPanel.setBackground(ThemeManager.getPanelBackground());
-        pmPanel.add(new JLabel("Hour:"));
-        pmPanel.add(hourComboPM);
-        amPmTabs.addTab("AM", amPanel);
-        amPmTabs.addTab("PM", pmPanel);
+        String[] ampm = new String[]{"AM", "PM"};
+        ampmCombo = new JComboBox<>(ampm);
+
+        // Prefill to nearest 5 minutes and current hour (12-hour format)
+        java.time.LocalTime now = java.time.LocalTime.now();
+        int curHour = now.getHour();
+        int curMinute = now.getMinute();
+        int rounded = ((curMinute + 2) / 5) * 5; // round to nearest 5
+        if (rounded >= 60) { rounded = 55; }
+        int sel12 = (curHour % 12 == 0) ? 12 : curHour % 12;
+        hourCombo.setSelectedItem(sel12);
+        minuteCombo.setSelectedItem(rounded - (rounded % 5));
+        ampmCombo.setSelectedItem(curHour < 12 ? "AM" : "PM");
+
+        // Snooze options (simpler list)
+        String[] snoozes = new String[]{"No repeat", "5 minutes", "15 minutes", "30 minutes", "1 hour", "2 hours"};
+        snoozeCombo = new JComboBox<>(snoozes);
+        snoozeCombo.setSelectedIndex(3); // default 30 minutes
+
+        alarmOptionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        alarmOptionsPanel.setBackground(ThemeManager.getPanelBackground());
+        alarmOptionsPanel.add(new JLabel("Time:"));
+        alarmOptionsPanel.add(hourCombo);
+        alarmOptionsPanel.add(new JLabel(":"));
+        alarmOptionsPanel.add(minuteCombo);
+        alarmOptionsPanel.add(ampmCombo);
+        alarmOptionsPanel.add(new JLabel("Snooze:"));
+        alarmOptionsPanel.add(snoozeCombo);
+        alarmOptionsPanel.setVisible(false);
+
+        // Toggle visibility of options when checkbox changes
+        alarmCheckBox.addActionListener(evt -> {
+            alarmOptionsPanel.setVisible(alarmCheckBox.isSelected());
+            SwingUtilities.invokeLater(() -> this.revalidate());
+        });
 
         alarmPanel.add(alarmCheckBox);
-        alarmPanel.add(alarmRepeatCombo);
-        alarmPanel.add(amPmTabs);
-        alarmPanel.add(new JLabel("Min:"));
-        alarmPanel.add(minuteCombo);
+        alarmPanel.add(alarmOptionsPanel);
 
         gbc.gridx = 1;
         gbc.gridy = 4;
@@ -523,34 +513,38 @@ public class TaskCreationGUI extends JDialog {
                 System.out.println("DEBUG: Creating task - Name: '" + name + "', Due Date: " + dueDate);
                 System.out.println("DEBUG: Task object - Name: '" + task.getTaskName() + "'");
                 calendar.addTask(task);
-                // If user selected an alarm, schedule it using the inline repeat combo (no modal)
+                // If user selected an alarm, schedule it using the compact time + snooze controls
                 if (alarmCheckBox != null && alarmCheckBox.isSelected()) {
-                    int chosenMinutes = 30;
+                    int chosenMinutes = 0;
                     try {
-                        if (alarmRepeatCombo != null && alarmRepeatCombo.getSelectedItem() != null) {
-                            String s = alarmRepeatCombo.getSelectedItem().toString();
-                            String digits = s.replaceAll("\\D+", "");
-                            if (!digits.isEmpty()) chosenMinutes = Integer.parseInt(digits);
+                        if (snoozeCombo != null && snoozeCombo.getSelectedItem() != null) {
+                            String s = snoozeCombo.getSelectedItem().toString();
+                            if (s.equalsIgnoreCase("No repeat")) {
+                                chosenMinutes = 0;
+                            } else if (s.contains("minute")) {
+                                String digits = s.replaceAll("\\D+", "");
+                                if (!digits.isEmpty()) chosenMinutes = Integer.parseInt(digits);
+                            } else if (s.contains("hour")) {
+                                String digits = s.replaceAll("\\D+", "");
+                                if (!digits.isEmpty()) chosenMinutes = Integer.parseInt(digits) * 60;
+                            }
                         }
                     } catch (Throwable t) {
-                        chosenMinutes = 30;
+                        chosenMinutes = 0;
                     }
 
                     int hr = 9;
                     int min = 0;
-                    if (amPmTabs != null && minuteCombo != null) {
+                    if (hourCombo != null && minuteCombo != null && ampmCombo != null) {
                         Object msel = minuteCombo.getSelectedItem();
                         if (msel instanceof Integer) min = (Integer) msel;
-                        int selectedTab = amPmTabs.getSelectedIndex(); // 0 = AM, 1 = PM
-                        if (selectedTab == 0) {
-                            Object hsel = hourComboAM.getSelectedItem();
-                            int hr12 = (hsel instanceof Integer) ? (Integer) hsel : 9;
-                            // 12 AM => 0
+                        Object hsel = hourCombo.getSelectedItem();
+                        int hr12 = (hsel instanceof Integer) ? (Integer) hsel : 9;
+                        Object ampmSel = ampmCombo.getSelectedItem();
+                        String ampmStr = (ampmSel != null) ? ampmSel.toString() : "AM";
+                        if ("AM".equalsIgnoreCase(ampmStr)) {
                             hr = (hr12 == 12) ? 0 : hr12;
                         } else {
-                            Object hsel = hourComboPM.getSelectedItem();
-                            int hr12 = (hsel instanceof Integer) ? (Integer) hsel : 9;
-                            // 12 PM => 12
                             hr = (hr12 == 12) ? 12 : hr12 + 12;
                         }
                     }

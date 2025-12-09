@@ -12,6 +12,7 @@ public class CalendarGUI extends JFrame {
     private JLabel monthLabel;
     private JButton prevButton;
     private JButton nextButton;
+    private JTextArea detailsArea;
 
     public CalendarGUI(MyCalendar calendar) {
         this.calendar = calendar;
@@ -71,6 +72,33 @@ public class CalendarGUI extends JFrame {
         grid.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         grid.setOpaque(false);
         add(grid, BorderLayout.CENTER);
+
+        // Right side import/details panel (merged from CalendarImportGUI)
+        JPanel right = new JPanel(new BorderLayout(6,6));
+        right.setBorder(BorderFactory.createEmptyBorder(8,8,8,8));
+        detailsArea = new JTextArea();
+        detailsArea.setEditable(false);
+        detailsArea.setLineWrap(true);
+        detailsArea.setWrapStyleWord(true);
+        right.add(new JScrollPane(detailsArea), BorderLayout.CENTER);
+
+        JButton importBtn = new JButton("Import tasks from file");
+        importBtn.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            int res = chooser.showOpenDialog(this);
+            if (res == JFileChooser.APPROVE_OPTION) {
+                java.io.File f = chooser.getSelectedFile();
+                try {
+                    calendar.loadTasksFromFile(f.getAbsolutePath());
+                    refreshCalendar();
+                    detailsArea.setText("Imported tasks from " + f.getName() + ". Total tasks: " + calendar.getTasksList().size());
+                } catch (Exception ex) {
+                    detailsArea.setText("Failed to import tasks: " + ex.getMessage());
+                }
+            }
+        });
+        right.add(importBtn, BorderLayout.NORTH);
+        add(right, BorderLayout.EAST);
     }
 
     // Public so TaskGUI can request refresh when tasks change
@@ -121,7 +149,7 @@ public class CalendarGUI extends JFrame {
                     String name = t.getTaskName();
                     String display = name.length() > 18 ? name.substring(0, 15) + "..." : name;
                     final Task taskRef = t;
-                    JLabel taskLabel = new JLabel("• " + display);
+                    JLabel taskLabel = new JLabel("• " + display + (AlarmManager.getScheduledTasks().contains(t) ? " 🔔" : ""));
                     taskLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
                     taskLabel.setForeground(ThemeManager.getTextColor());
                     taskLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -187,6 +215,27 @@ public class CalendarGUI extends JFrame {
                             cell.setFillColor(ThemeManager.getPanelBackground());
                         }
                         cell.repaint();
+                    }
+                    @Override
+                    public void mouseClicked(java.awt.event.MouseEvent e) {
+                        // Show details for this date in the right-hand panel if available
+                        if (detailsArea != null) {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("Date: ").append(d).append("\n\n");
+                            List<Task> tasks = calendar.getTasksOn(d);
+                            if (tasks.isEmpty()) sb.append("No tasks.\n");
+                            else {
+                                sb.append("Tasks:\n");
+                                for (Task t : tasks) sb.append("- ").append(t.getTaskName()).append("\n");
+                            }
+                            List<Event> evs = calendar.getEventsOn(d);
+                            if (evs.isEmpty()) sb.append("No events.\n");
+                            else {
+                                sb.append("\nEvents:\n");
+                                for (Event ev : evs) sb.append("- ").append(ev.getEventName()).append("\n");
+                            }
+                            detailsArea.setText(sb.toString());
+                        }
                     }
                 });
             } else {

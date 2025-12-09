@@ -1,3 +1,46 @@
+# TaskTracker (Task & Event Manager)
+
+Lightweight Java Swing app for creating and viewing tasks and events on a calendar.
+## Quick start
+
+1. Compile:
+
+```powershell
+javac -d bin -cp . *.java
+```
+2. Run:
+
+```powershell
+java -cp bin Driver
+```
+
+The GUI will open automatically.
+## Where to look (main classes)
+
+- `Driver.java` — application entry point
+- `TaskGUI.java` — main window (controls, calendar, top-level UI)
+- `TaskCreationGUI.java` — create tasks and events (AM/PM time input)
+- `CombinedPage.java` — combined tasks/events 50/50 view
+- `TasksPage.java` — full-page tasks list
+- `EventsPage.java` — full-page events list
+- `MyCalendar.java` — in-memory calendar model and persistence helpers
+- `Task.java` — task data model
+- `Event.java` — event data model
+- `DetailPage.java` — popup showing item details
+- `CalendarGUI.java` — month view calendar UI
+- `DatePickerDialog.java` — date picker used when creating items
+- `ThemeManager.java` — light/dark theme handling
+- `UIUtils.java` — shared UI helpers and rounded panel implementation
+- `SoundPlayer.java` — simple audio utilities used by alarms/notifications
+- `AlarmManager.java`, `AlarmDialog.java`, `AlarmManagementGUI.java` — alarm scheduling and UI
+
+## Notes
+
+- Uses Java Swing; no external libraries required.
+- Tasks are stored in memory; `MyCalendar` provides simple file helpers (`saveTasksToFile` / `loadTasksFromFile`).
+- Tasks with due dates before today are automatically removed from the active list when displayed.
+
+If you'd like screenshots, contribution instructions, or a Git commit example added here, tell me where to place them and I'll update the README.
 # Task Manager
 
 A simple task and event manager with a calendar GUI built in Java.
